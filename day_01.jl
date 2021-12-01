@@ -28,7 +28,9 @@ using TimeDag
 
 function num_depth_increases(depths::AbstractVector{<:Real}, window::Int64)
     t_start = DateTime(2000)
-    block = @inbounds Block([t_start + i * Day(1) => depths[i] for i in eachindex(depths)])
+    block = Block(
+        TimeDag.unchecked, t_start:Day(1):(t_start + Day(1) * (length(depths) - 1)), depths
+    )
 
     _eval(x) = evaluate(x, t_start, last(block.times) + Day(1))
 
@@ -43,4 +45,4 @@ function num_depth_increases(depths::AbstractVector{<:Real}, window::Int64)
 end
 
 @assert num_depth_increases(example, 3) == 5
-num_depth_increases(depths, 3)
+@time num_depth_increases(depths, 3)
