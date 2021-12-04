@@ -23,10 +23,10 @@ num_bits(n::Integer) = 8 * sizeof(n) - leading_zeros(n)
 
 function get_gamma_epsilon(input::AbstractString)
     inputs = get_inputs(input)
-    max_n = only(maximum(num_bits, inputs))
+    max_n = maximum(num_bits, inputs)
     masks = ones(Int64, max_n)
     @inbounds for i in 1:max_n
-         masks[i] <<= (max_n - i)
+        masks[i] <<= (max_n - i)
     end
 
     count = 0
@@ -67,3 +67,49 @@ example = """
 
 @assert get_ans(example) == 198
 get_ans(load_input(3))
+
+# Part 2
+
+function filter_input(input::AbstractString, most_common::Bool)
+    inputs = get_inputs(input)
+    max_n = maximum(num_bits, inputs)
+    for bit in max_n:-1:1
+        println(bit, " ", inputs)
+        inputs = filter_inputs(inputs, bit, most_common)
+        length(inputs) == 1 && break
+    end
+    length(inputs) == 1 || error("Failed to find input")
+    return only(inputs)
+end
+
+function filter_inputs(inputs::AbstractVector{<:Integer}, bit::Int, most_common::Bool)
+    bit > 0 || throw(ArgumentError("Bit should be positive, got $bit"))
+    mask = 1 << (bit - 1)
+    count = length(inputs)
+    masked_count = sum((mask .& inputs) .> 0)
+    # masked_count == (count - masked_count) && error("AMBIGUITY!")
+
+    bit = if most_common
+        masked_count >= (count - masked_count)
+    else
+        masked_count < (count - masked_count)
+    end
+
+    println("BIT:  ", bit)
+    println("MASK:  ", mask)
+    println(mask .& inputs)
+    println()
+
+    return filter(inputs) do input
+        (input & mask > 0) == bit
+    end
+end
+
+function get_ans2(input)
+    o2_rating = filter_input(input, true)
+    co2_rating = filter_input(input, false)
+    return o2_rating * co2_rating
+end
+
+@assert get_ans2(example) == 230
+get_ans2(load_input(3))
