@@ -305,7 +305,7 @@ uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [[deps.TimeDag]]
 deps = ["AbstractTrees", "AssociativeWindowAggregation", "Bijections", "DataStructures", "Dates", "LightGraphs", "LinearAlgebra", "PrettyTables", "Random", "RecipesBase", "StaticArrays", "Statistics", "Tables", "TeaFiles"]
-path = "/Users/gillam/.julia/dev/TimeDag"
+git-tree-sha1 = "e5b841a8d60998a14c4bcc9eeed12fe5a4831753"
 uuid = "91963e24-6e66-4132-aeb8-436d9f37dbc7"
 version = "0.1.3"
 
