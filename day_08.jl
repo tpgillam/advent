@@ -31,7 +31,6 @@ function Base.parse(::Type{Display}, input::AbstractString)
     return Display(digits)
 end
 
-
 real_digits = [
     parse(Digit, "abcefg"),  # 0
     parse(Digit, "cf"),
@@ -44,10 +43,6 @@ real_digits = [
     parse(Digit, "abcdefg"),
     parse(Digit, "abcdfg"),  # 9
 ]
-
-
-# value(digit::Digit) = findfirst(
-
 
 permute(digit::Digit, perm) = Digit(digit.segments[perm])
 permute(display::Display, perm) = Display(map(x -> permute(x, perm), display.digits))
