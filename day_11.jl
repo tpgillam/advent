@@ -51,11 +51,8 @@ function step!(x::AbstractMatrix{Int64})
         # An octopus shouldn't flash more than once.
         this_flashed = @. ((x > 9) & (!flashed))
         sum(this_flashed) == 0 && break  # Done flashing
-        # display(this_flashed)
         apply_flashes!(x, this_flashed)
         flashed .|= this_flashed  # Update the record of all flashes.
-        # println("FLASHED")
-        # display(flashed)
     end
 
     x[flashed] .= 0
