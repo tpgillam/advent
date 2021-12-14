@@ -1,7 +1,9 @@
 [deps]
 AssociativeWindowAggregation = "444271a7-5434-4a02-b82b-0e30a9223c60"
 Combinatorics = "861a8166-3701-5b0c-9a16-15d98fcdc6aa"
+DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 Graphs = "86223c79-3864-5bf0-83f7-82e725a168b6"
 Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 TimeDag = "91963e24-6e66-4132-aeb8-436d9f37dbc7"
