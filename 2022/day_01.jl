@@ -14,7 +14,6 @@ calories(elves::Vector{Elf}) = sum(calories, elves)
 
 Base.parse(::Type{Item}, str::AbstractString) = Item(parse(Int, str))
 
-
 """Flush `seen_items` into `elves`."""
 function _flush!(elves, seen_items)
     isempty(seen_items) && return seen_items
@@ -33,12 +32,10 @@ function Base.parse(::Type{Vector{Elf}}, input::AbstractString)
         end
         item = parse(Item, line)
         push!(seen_items, item)
-
     end
     seen_items = _flush!(elves, seen_items)
     return elves
 end
-
 
 function get_ans(input::AbstractString)
     elves = parse(Vector{Elf}, input)
