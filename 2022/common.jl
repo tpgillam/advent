@@ -6,3 +6,7 @@ function load_input(day::Integer)
     path = joinpath("2022", "inputs", name)
     return read(path, String)
 end
+
+abstract type Part end
+struct Part1 <: Part end
+struct Part2 <: Part end
