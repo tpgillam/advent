@@ -21,7 +21,7 @@ function Base.parse(::Type{Vector{ElfPair}}, str::AbstractString)
     end
 end
 
-is_contained(x::ElfPair) = issubset(x.range_1, x.range_2) ||issubset(x.range_2, x.range_1)
+is_contained(x::ElfPair) = issubset(x.range_1, x.range_2) || issubset(x.range_2, x.range_1)
 
 function get_ans(input::AbstractString)
     pairs = parse(Vector{ElfPair}, input)
