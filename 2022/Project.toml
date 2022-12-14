@@ -1,5 +1,7 @@
 [deps]
 AbstractTrees = "1520ce14-60c1-5f80-bbc7-55ef81b5835c"
 AssociativeWindowAggregation = "444271a7-5434-4a02-b82b-0e30a9223c60"
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 Graphs = "86223c79-3864-5bf0-83f7-82e725a168b6"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+ResumableFunctions = "c5292f4c-5179-55e1-98c5-05642aab7184"
