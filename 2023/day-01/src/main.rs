@@ -88,7 +88,6 @@ fn part2(input: &str) -> String {
     let answer: u32 = input
         .lines()
         .map(|line| {
-
             let digits: Vec<_> = replace_string_numbers(line)
                 .chars()
                 .filter_map(|x| {
