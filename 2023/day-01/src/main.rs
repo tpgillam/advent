@@ -30,7 +30,7 @@ fn part1(input: &str) -> String {
 // Replace any occurrences of known digits with digits.
 // NOTE: We always replace ALL digits, even overlapping. To rationalise this,
 //  we only replace the first character of the number with the digit, e.g.
-//      "eightwo" -> "8igh2wo" 
+//      "eightwo" -> "8igh2wo"
 //  This means that the resulting string has the same length as the input.
 fn replace_string_numbers(line: &str) -> String {
     // Find all the literal numbers in the string.
@@ -59,7 +59,9 @@ fn replace_string_numbers(line: &str) -> String {
 
 // Return a map from digit (as an ASCII byte) to the locations in `str` at which it occurs.
 fn find_literal_digit_occurrences(line: &str) -> HashMap<u8, Vec<usize>> {
-    let numbers = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
+    let numbers = [
+        "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
+    ];
 
     let result: HashMap<_, _> = numbers
         .iter()
