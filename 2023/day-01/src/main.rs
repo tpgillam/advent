@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 fn get_input() -> &'static str {
-    return include_str!("../input.txt");
+    include_str!("../input.txt")
 }
 
 fn part1(input: &str) -> String {
@@ -24,7 +24,7 @@ fn part1(input: &str) -> String {
         })
         .sum();
 
-    return answer.to_string();
+    answer.to_string()
 }
 
 // Replace any occurrences of known digits with digits.
@@ -54,14 +54,12 @@ fn replace_string_numbers(line: &str) -> String {
         }
     }
 
-    return String::from_utf8(line_bytes).unwrap();
+    String::from_utf8(line_bytes).unwrap()
 }
 
 // Return a map from digit (as an ASCII byte) to the locations in `str` at which it occurs.
 fn find_literal_digit_occurrences(line: &str) -> HashMap<u8, Vec<usize>> {
-    let numbers = vec![
-        "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
-    ];
+    let numbers = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
 
     let result: HashMap<_, _> = numbers
         .iter()
@@ -70,7 +68,7 @@ fn find_literal_digit_occurrences(line: &str) -> HashMap<u8, Vec<usize>> {
             let matches: Vec<_> = line.match_indices(number).collect();
 
             if matches.is_empty() {
-                return None;
+                None
             } else {
                 let digit_bytes = (i + 1).to_string().into_bytes();
                 assert_eq!(digit_bytes.len(), 1);
@@ -104,7 +102,7 @@ fn part2(input: &str) -> String {
         })
         .sum();
 
-    return answer.to_string();
+    answer.to_string()
 }
 
 fn main() {
@@ -118,10 +116,10 @@ mod tests {
     use crate::{part1, part2};
 
     fn get_example_1() -> &'static str {
-        return include_str!("../example_1.txt");
+        include_str!("../example_1.txt")
     }
     fn get_example_2() -> &'static str {
-        return include_str!("../example_2.txt");
+        include_str!("../example_2.txt")
     }
 
     #[test]
