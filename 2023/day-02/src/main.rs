@@ -73,7 +73,7 @@ impl FromStr for Game {
         //  - we can then convert the error type and use the `?`-fast-return operator as usual.
         let cube_counts = cube_counts_str
             .split("; ")
-            .map(|tok| CubeCount::from_str(tok))
+            .map(CubeCount::from_str)
             .collect::<Result<Vec<_>, _>>()
             .map_err(|_| ParseGameError)?;
 
@@ -106,7 +106,7 @@ fn part1(input: &str) -> String {
         })
         .sum();
 
-    return answer.to_string();
+    answer.to_string()
 }
 
 fn count_lower_bound(cube_counts: &[CubeCount]) -> CubeCount {
@@ -130,7 +130,7 @@ fn part2(input: &str) -> String {
         })
         .sum();
 
-    return answer.to_string();
+    answer.to_string()
 }
 
 fn main() {
