@@ -82,11 +82,15 @@ impl FromStr for Game {
     }
 }
 
-fn part1(input: &str) -> String {
-    let answer: u32 = input
+fn non_empty_lines(input: &str) -> impl Iterator<Item = &str> {
+    input
         .lines()
         .map(|line| line.trim())
         .filter(|line| !line.is_empty())
+}
+
+fn part1(input: &str) -> String {
+    let answer: u32 = non_empty_lines(input)
         .map(|line| {
             let game = Game::from_str(line).unwrap();
             let is_possible = game
@@ -105,17 +109,41 @@ fn part1(input: &str) -> String {
     return answer.to_string();
 }
 
+fn count_lower_bound(cube_counts: &[CubeCount]) -> CubeCount {
+    let mut red: u32 = 0;
+    let mut green: u32 = 0;
+    let mut blue: u32 = 0;
+    for cube_count in cube_counts {
+        red = red.max(cube_count.red);
+        green = green.max(cube_count.green);
+        blue = blue.max(cube_count.blue);
+    }
+    CubeCount { red, green, blue }
+}
+
+fn part2(input: &str) -> String {
+    let answer: u32 = non_empty_lines(input)
+        .map(|line| {
+            let game = Game::from_str(line).unwrap();
+            let cube_count = count_lower_bound(&game.cube_counts);
+            cube_count.red * cube_count.green * cube_count.blue
+        })
+        .sum();
+
+    return answer.to_string();
+}
+
 fn main() {
     let input = get_input();
     println!("Part1: {}", part1(input));
-    // println!("Part2: {}", part2(input));
+    println!("Part2: {}", part2(input));
 }
 
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;
 
-    use crate::{part1, CubeCount, Game, ParseCubeCountError, ParseGameError};
+    use crate::{part1, part2, CubeCount, Game, ParseCubeCountError, ParseGameError};
 
     #[test]
     fn cube_count_from_str() {
@@ -167,15 +195,21 @@ mod tests {
         assert_eq!(Game::from_str("Game xx: 3 blue"), Err(ParseGameError));
     }
 
-    #[test]
-    fn part_1() {
-        let example = "
+    const EXAMPLE: &str = "
 Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
 Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue
 Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red
 Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
 Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green
 ";
-        assert_eq!(part1(example), "8");
+
+    #[test]
+    fn part_1() {
+        assert_eq!(part1(EXAMPLE), "8");
+    }
+
+    #[test]
+    fn part_2() {
+        assert_eq!(part2(EXAMPLE), "2286");
     }
 }
