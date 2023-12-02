@@ -120,6 +120,7 @@ mod tests {
     fn get_example_1() -> &'static str {
         include_str!("../example_1.txt")
     }
+
     fn get_example_2() -> &'static str {
         include_str!("../example_2.txt")
     }
