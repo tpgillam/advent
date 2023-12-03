@@ -117,7 +117,9 @@ fn count_lower_bound(cube_counts: &[CubeCount]) -> CubeCount {
 }
 
 fn part2(input: &str) -> String {
-    let answer: u32 = non_empty_lines(input)
+    let answer: u32 = input
+        .trim()
+        .lines()
         .map(|line| {
             let game = Game::from_str(line).unwrap();
             let cube_count = count_lower_bound(&game.cube_counts);
