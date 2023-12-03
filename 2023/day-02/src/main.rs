@@ -82,15 +82,10 @@ impl FromStr for Game {
     }
 }
 
-fn non_empty_lines(input: &str) -> impl Iterator<Item = &str> {
-    input
-        .lines()
-        .map(|line| line.trim())
-        .filter(|line| !line.is_empty())
-}
-
 fn part1(input: &str) -> String {
-    let answer: u32 = non_empty_lines(input)
+    let answer: u32 = input
+        .trim()
+        .lines()
         .map(|line| {
             let game = Game::from_str(line).unwrap();
             let is_possible = game
