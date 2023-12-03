@@ -177,19 +177,21 @@ fn part1(input: &str) -> String {
     answer.to_string()
 }
 
+fn part2(_input: &str) -> String {
+    "moo".to_string()
+}
+
 fn main() {
     let input = get_input();
     println!("Part1: {}", part1(input));
-    // println!("Part2: {}", part2(input));
+    println!("Part2: {}", part2(input));
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::part1;
+    use crate::{part1, part2};
 
-    #[test]
-    fn example_part1() {
-        let example = "
+    const EXAMPLE: &'static str = "
 467..114..
 ...*......
 ..35..633.
