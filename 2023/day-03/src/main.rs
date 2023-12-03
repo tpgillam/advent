@@ -122,6 +122,8 @@ impl FromStr for Schematic {
     }
 }
 
+// This was used for debugging, so don't warn about the fact that it is unused.
+#[allow(dead_code)]
 fn render_locations(locations: &HashSet<Location>) -> String {
     let n_rows = locations.iter().map(|x| x.row).max().unwrap() + 1;
     let n_cols = locations.iter().map(|x| x.col).max().unwrap() + 1;
@@ -202,6 +204,14 @@ mod tests {
 ......755.
 ...$.*....
 .664.598..";
-        assert_eq!(part1(example), "4361")
+
+    #[test]
+    fn example_part1() {
+        assert_eq!(part1(EXAMPLE), "4361")
+    }
+
+    #[test]
+    fn example_part2() {
+        assert_eq!(part2(EXAMPLE), "467835")
     }
 }
