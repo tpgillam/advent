@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::num::ParseIntError;
 use std::str::FromStr;
 
@@ -43,8 +44,16 @@ impl FromStr for Card {
 
 fn part1(input: &str) -> String {
     let cards: Vec<Card> = input.trim().lines().map(|x| x.parse().unwrap()).collect();
-    dbg!(cards);
-    "moo".to_string()
+    let answer: u32 = cards.iter().map(|card| {
+        let winning: HashSet<u32> = card.winning_numbers.iter().cloned().collect();
+        let ours: HashSet<u32> = card.our_numbers.iter().cloned().collect();
+        let num_winning = ours.intersection(&winning).count() as u32;
+        match num_winning {
+            0 => 0,
+            _ => 2u32.pow(num_winning - 1) as u32
+        }
+    }).sum();
+    answer.to_string()
 }
 
 fn main() {
