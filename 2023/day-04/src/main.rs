@@ -42,6 +42,26 @@ impl FromStr for Card {
     }
 }
 
+// Some new syntax here!
+//   'a represents a lifetime that we have labelled "a".
+//   It must appear in `parse_cards<'a>` to declare the label.
+//   It then appears in `&'a str` to indicate that we are using it to label the lifetime
+//      of the argument.
+//   We then want to indicate that the lifetime of the result is the same as this. The
+//      notation was introduced in this RFC:
+//
+//      https://github.com/rust-lang/rfcs/blob/master/text/0599-default-object-bound.md
+//
+// Here is the explicit line:
+//
+//  fn parse_cards<'a>(input: &'a str) -> impl Iterator<Item = Card> + 'a {
+//
+// But then clippy points out that we can simplify it to the following using
+//  the placeholder lifetime `'_`. This will match the lifetime of the argument.
+fn parse_cards(input: &str) -> impl Iterator<Item = Card> + '_ {
+    input.trim().lines().map(|x| x.parse().unwrap())
+}
+
 fn num_winning(card: &Card) -> u32 {
     let winning: HashSet<u32> = card.winning_numbers.iter().cloned().collect();
     let ours: HashSet<u32> = card.our_numbers.iter().cloned().collect();
@@ -49,17 +69,15 @@ fn num_winning(card: &Card) -> u32 {
 }
 
 fn part1(input: &str) -> String {
-    let cards: Vec<Card> = input.trim().lines().map(|x| x.parse().unwrap()).collect();
-    let answer: u32 = cards
-        .iter()
+    let answer: u32 = parse_cards(input)
         .map(|card| {
-            let n = num_winning(card);
+            let n = num_winning(&card);
             match n {
                 0 => 0,
                 _ => 2u32.pow(n - 1),
             }
         })
-        .sum();
+        .sum::<u32>();
     answer.to_string()
 }
 
@@ -77,14 +95,14 @@ fn part2(input: &str) -> String {
     // copies should be made.
     let mut replicators: Vec<Replicator> = Vec::new();
 
-    let cards = input.trim().lines().map(|x| x.parse().unwrap());
-    let answer: u32 = cards
+    let answer: u32 = parse_cards(input)
         .map(|card| {
             // First we score this card; i.e. figure out how many of it we have.
             // One for the initial copy, and then we sum up the number of copies to make
             let num_copies = 1 + replicators.iter().map(|x| x.num_copies).sum::<u32>();
 
             // Update the existing replicators...
+            // PERF: An alternative design could probablyreduce all these allocations.
             replicators = replicators
                 .iter()
                 .filter_map(|x| {
