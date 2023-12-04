@@ -102,7 +102,7 @@ fn part2(input: &str) -> String {
             let num_copies = 1 + replicators.iter().map(|x| x.num_copies).sum::<u32>();
 
             // Update the existing replicators...
-            // PERF: An alternative design could probablyreduce all these allocations.
+            // PERF: An alternative design could probably reduce all these allocations.
             replicators = replicators
                 .iter()
                 .filter_map(|x| {
