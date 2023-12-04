@@ -35,10 +35,10 @@ impl FromStr for Card {
 
         let winning_numbers = parse_numbers(winning_numbers_str).map_err(|_| ParseCardError)?;
         let our_numbers = parse_numbers(our_numbers_str).map_err(|_| ParseCardError)?;
-        return Ok(Card {
+        Ok(Card {
             winning_numbers,
             our_numbers,
-        });
+        })
     }
 }
 
@@ -56,7 +56,7 @@ fn part1(input: &str) -> String {
             let n = num_winning(card);
             match n {
                 0 => 0,
-                _ => 2u32.pow(n - 1) as u32,
+                _ => 2u32.pow(n - 1),
             }
         })
         .sum();
