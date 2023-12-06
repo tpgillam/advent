@@ -22,8 +22,7 @@ mod race {
 
     fn parse_line(s: &str) -> Result<Vec<u64>, ParseSheetErr> {
         let (_, rest) = s.split_once(':').ok_or(ParseSheetErr)?;
-        rest.trim()
-            .split_whitespace()
+        rest.split_whitespace()
             .map(|x| x.parse::<u64>().map_err(|_| ParseSheetErr))
             .collect()
     }
@@ -38,7 +37,7 @@ mod race {
 
             let races: Vec<_> = times
                 .into_iter()
-                .zip(distances.into_iter())
+                .zip(distances)
                 .map(|(duration, distance_record)| Race {
                     duration,
                     distance_record,
@@ -72,7 +71,7 @@ fn part1(input: &str) -> String {
 
 fn part2(input: &str) -> String {
     // Slight hack so that we parse correctly...
-    let sheet: race::Sheet = input.replace(" ", "").parse().unwrap();
+    let sheet: race::Sheet = input.replace(' ', "").parse().unwrap();
     let answer = if let [race] = sheet.races.as_slice() {
         num_ways_to_win(race)
     } else {
