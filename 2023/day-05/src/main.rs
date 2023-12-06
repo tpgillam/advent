@@ -5,10 +5,7 @@ fn get_input() -> &'static str {
 }
 
 mod almanac {
-    use std::{
-        ops::Range,
-        str::FromStr,
-    };
+    use std::{ops::Range, str::FromStr};
 
     pub struct RangeMapEntry {
         source_range: Range<i64>,
@@ -36,10 +33,7 @@ mod almanac {
         /// Return a tuple
         ///     mapped range       (if any)
         ///     unmapped range(s)  (maybe empty)
-        pub fn lookup_range(
-            &self,
-            source: &Range<i64>,
-        ) -> (Option<Range<i64>>, Vec<Range<i64>>) {
+        pub fn lookup_range(&self, source: &Range<i64>) -> (Option<Range<i64>>, Vec<Range<i64>>) {
             if (source.end <= self.source_range.start) || (source.start >= self.source_range.end) {
                 // No intersection.
                 return (None, [source.clone()].to_vec());
@@ -142,9 +136,8 @@ mod almanac {
                     .flat_map(|this_source| {
                         let (new_processed, new_unprocessed) = entry.lookup_range(this_source);
 
-                        match new_processed {
-                            Some(x) => all_processed.push(x),
-                            None => {}
+                        if let Some(x) = new_processed {
+                            all_processed.push(x)
                         }
 
                         new_unprocessed
@@ -196,10 +189,7 @@ mod almanac {
             let mut ranges: Vec<Range<i64>> = [seeds].to_vec();
             for map in &self.maps {
                 // Replace the ranges with the result of applying this layer of mappings.
-                ranges = ranges
-                    .iter()
-                    .flat_map(|r| map.lookup_range(r))
-                    .collect();
+                ranges = ranges.iter().flat_map(|r| map.lookup_range(r)).collect();
             }
             ranges
         }
