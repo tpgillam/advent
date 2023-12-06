@@ -1,9 +1,32 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, str::FromStr};
 
 fn get_input() -> &'static str {
     include_str!("../input.txt")
 }
 
+/// Parsed problem input
+struct Almanac {
+    /// The ids of the seeds that we need.
+    seeds: Vec<u32>,
+
+    /// An ordered list of maps, which map seed -> .... -> location.
+    /// The inner levels are not named for now.
+    maps: Vec<HashMap<u32, u32>>,
+}
+
+struct ParseAlmanacErr;
+
+impl FromStr for Almanac {
+    type Err = ParseAlmanacErr;
+
+    fn from_str(s: &str) -> Result<Almanac, Self::Err> {
+        todo!()
+    }
+}
+
+// FIXME: The ranges in question are huge; this won't actually scale.
+// FIXME: The ranges in question are huge; this won't actually scale.
+// FIXME: The ranges in question are huge; this won't actually scale.
 fn parse_source_to_destination(s: &str) -> HashMap<u32, u32> {
     let mut result: HashMap<u32, u32> = HashMap::new();
     for line in s.lines() {
