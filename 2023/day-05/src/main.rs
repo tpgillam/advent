@@ -5,29 +5,90 @@ fn get_input() -> &'static str {
 }
 
 mod almanac {
-    use std::{ops::Range, str::FromStr};
+    use std::{
+        ops::Range,
+        str::FromStr,
+    };
 
     pub struct RangeMapEntry {
-        source_range: Range<u64>,
-        destination_start: u64,
+        source_range: Range<i64>,
+        destination_offset: i64,
     }
 
     impl RangeMapEntry {
-        pub fn new(destination_start: u64, source_start: u64, length: u64) -> Self {
+        pub fn new(destination_start: i64, source_start: i64, length: i64) -> Self {
             Self {
                 source_range: source_start..(source_start + length),
-                destination_start,
+                destination_offset: destination_start - source_start,
             }
         }
 
         /// Lookup the given source id, and return the destination id if we can
         /// determine it from this entry.
-        pub fn lookup(self: &Self, id_source: u64) -> Option<u64> {
+        pub fn lookup(self: &Self, id_source: i64) -> Option<i64> {
             if self.source_range.contains(&id_source) {
-                let offset = id_source - self.source_range.start;
-                Some(self.destination_start + offset)
+                Some(id_source + self.destination_offset)
             } else {
                 None
+            }
+        }
+
+        /// Return a tuple
+        ///     mapped range       (if any)
+        ///     unmapped range(s)  (maybe empty)
+        pub fn lookup_range(
+            self: &Self,
+            source: &Range<i64>,
+        ) -> (Option<Range<i64>>, Vec<Range<i64>>) {
+            if (source.end <= self.source_range.start) || (source.start >= self.source_range.end) {
+                // No intersection.
+                return (None, [source.clone()].to_vec());
+            }
+
+            if (source.start < self.source_range.start) && (source.end > self.source_range.end) {
+                // Overlap to both sides.
+                return (
+                    Some(
+                        (self.source_range.start + self.destination_offset)
+                            ..(self.source_range.end + self.destination_offset),
+                    ),
+                    [
+                        source.start..self.source_range.start,
+                        self.source_range.end..source.end,
+                    ]
+                    .to_vec(),
+                );
+            }
+
+            if (source.start >= self.source_range.start) && (source.end <= self.source_range.end) {
+                // Fully contained within the map.
+                return (
+                    Some(
+                        (source.start + self.destination_offset)
+                            ..(source.end + self.destination_offset),
+                    ),
+                    Vec::new(),
+                );
+            }
+
+            // At this point we know that we either overlap over start OR we overlap over the end.
+            if source.start < self.source_range.start {
+                return (
+                    Some(
+                        (self.source_range.start + self.destination_offset)
+                            ..(source.end + self.destination_offset),
+                    ),
+                    [source.start..self.source_range.start].to_vec(),
+                );
+            } else {
+                // Only option left is to overlap to the right
+                return (
+                    Some(
+                        (source.start + self.destination_offset)
+                            ..(self.source_range.end + self.destination_offset),
+                    ),
+                    [self.source_range.end..source.end].to_vec(),
+                );
             }
         }
     }
@@ -41,7 +102,7 @@ mod almanac {
         fn from_str(s: &str) -> Result<RangeMapEntry, Self::Err> {
             let parts: Vec<&str> = s.split_whitespace().collect();
 
-            let get_part = |i: usize| -> Result<u64, ParseRangeMapEntryErr> {
+            let get_part = |i: usize| -> Result<i64, ParseRangeMapEntryErr> {
                 parts
                     .get(i)
                     .ok_or(ParseRangeMapEntryErr)?
@@ -61,7 +122,7 @@ mod almanac {
     }
 
     impl RangeMap {
-        pub fn lookup(self: &Self, id_source: u64) -> u64 {
+        pub fn lookup(self: &Self, id_source: i64) -> i64 {
             for entry in &self.entries {
                 match entry.lookup(id_source) {
                     Some(id_destination) => return id_destination,
@@ -69,6 +130,33 @@ mod almanac {
                 }
             }
             id_source
+        }
+
+        pub fn lookup_range(self: &Self, source: &Range<i64>) -> Vec<Range<i64>> {
+            let mut all_unprocessed: Vec<Range<i64>> = [source.clone()].to_vec();
+            let mut all_processed: Vec<Range<i64>> = Vec::new();
+
+            for entry in &self.entries {
+                all_unprocessed = all_unprocessed
+                    .iter()
+                    .map(|this_source| {
+                        let (new_processed, new_unprocessed) = entry.lookup_range(&this_source);
+
+                        match new_processed {
+                            Some(x) => all_processed.push(x),
+                            None => {}
+                        }
+
+                        new_unprocessed
+                    })
+                    .flatten()
+                    .collect();
+            }
+
+            // Any unprocessed entries at this point should be considered to be processed.
+            all_processed.extend_from_slice(&all_unprocessed);
+
+            all_processed
         }
     }
 
@@ -89,7 +177,7 @@ mod almanac {
 
     pub struct Almanac {
         /// The ids of the seeds that we need.
-        pub seeds: Vec<u64>,
+        pub seeds: Vec<i64>,
 
         /// An ordered list of maps, which map seed -> .... -> location.
         /// The inner levels are not named for now.
@@ -97,12 +185,25 @@ mod almanac {
     }
 
     impl Almanac {
-        pub fn lookup(&self, seed: u64) -> u64 {
+        pub fn lookup(&self, seed: i64) -> i64 {
             let mut id = seed;
             for map in &self.maps {
                 id = map.lookup(id);
             }
             id
+        }
+
+        pub fn lookup_range(&self, seeds: Range<i64>) -> Vec<Range<i64>> {
+            let mut ranges: Vec<Range<i64>> = [seeds].to_vec();
+            for map in &self.maps {
+                // Replace the ranges with the result of applying this layer of mappings.
+                ranges = ranges
+                    .iter()
+                    .map(|r| map.lookup_range(r))
+                    .flatten()
+                    .collect();
+            }
+            ranges
         }
     }
 
@@ -123,7 +224,7 @@ mod almanac {
                 .trim()
                 .replace("seeds: ", "")
                 .split_whitespace()
-                .map(|x| x.parse::<u64>().map_err(|_| ParseAlmanacErr))
+                .map(|x| x.parse::<i64>().map_err(|_| ParseAlmanacErr))
                 .collect::<Result<Vec<_>, _>>()?;
 
             // Absorb all maps.
@@ -155,16 +256,46 @@ fn part1(input: &str) -> String {
     answer.to_string()
 }
 
+fn part2(input: &str) -> String {
+    // Slight hack -- we are going to reinterpret our almanac vector of seeds as pairs
+    // denoting ranges, rather than alter the parsing.
+    let almanac: Almanac = input.parse().unwrap();
+
+    if almanac.seeds.len() % 2 != 0 {
+        panic!("Should have an even number of seed entries.")
+    }
+
+    let n = almanac.seeds.len() / 2;
+    let answer = (0..n)
+        .map(|i| {
+            let seed_start = almanac.seeds[2 * i];
+            let seed_range_len = almanac.seeds[2 * i + 1];
+
+            let seed_range = seed_start..(seed_start + seed_range_len);
+
+            almanac
+                .lookup_range(seed_range)
+                .iter()
+                .map(|r| r.start)
+                .min()
+                .unwrap()
+        })
+        .min()
+        .unwrap();
+
+    answer.to_string()
+}
+
 fn main() {
     let input = get_input();
     println!("Part1: {}", part1(input));
-    // println!("Part2: {}", part2(input));
+    println!("Part2: {}", part2(input));
 }
 
 #[cfg(test)]
 mod tests {
     use crate::almanac::{Almanac, RangeMap, RangeMapEntry};
-    use crate::part1;
+    use crate::{part1, part2};
 
     const EXAMPLE: &str = "
 seeds: 79 14 55 13
@@ -204,6 +335,11 @@ humidity-to-location map:
     #[test]
     fn part1_example() {
         assert_eq!(part1(EXAMPLE), "35")
+    }
+
+    #[test]
+    fn part2_example() {
+        assert_eq!(part2(EXAMPLE), "46")
     }
 
     #[test]
