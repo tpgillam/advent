@@ -25,7 +25,7 @@ mod almanac {
 
         /// Lookup the given source id, and return the destination id if we can
         /// determine it from this entry.
-        pub fn lookup(self: &Self, id_source: i64) -> Option<i64> {
+        pub fn lookup(&self, id_source: i64) -> Option<i64> {
             if self.source_range.contains(&id_source) {
                 Some(id_source + self.destination_offset)
             } else {
@@ -37,7 +37,7 @@ mod almanac {
         ///     mapped range       (if any)
         ///     unmapped range(s)  (maybe empty)
         pub fn lookup_range(
-            self: &Self,
+            &self,
             source: &Range<i64>,
         ) -> (Option<Range<i64>>, Vec<Range<i64>>) {
             if (source.end <= self.source_range.start) || (source.start >= self.source_range.end) {
@@ -73,22 +73,22 @@ mod almanac {
 
             // At this point we know that we either overlap over start OR we overlap over the end.
             if source.start < self.source_range.start {
-                return (
+                (
                     Some(
                         (self.source_range.start + self.destination_offset)
                             ..(source.end + self.destination_offset),
                     ),
                     [source.start..self.source_range.start].to_vec(),
-                );
+                )
             } else {
                 // Only option left is to overlap to the right
-                return (
+                (
                     Some(
                         (source.start + self.destination_offset)
                             ..(self.source_range.end + self.destination_offset),
                     ),
                     [self.source_range.end..source.end].to_vec(),
-                );
+                )
             }
         }
     }
@@ -122,7 +122,7 @@ mod almanac {
     }
 
     impl RangeMap {
-        pub fn lookup(self: &Self, id_source: i64) -> i64 {
+        pub fn lookup(&self, id_source: i64) -> i64 {
             for entry in &self.entries {
                 match entry.lookup(id_source) {
                     Some(id_destination) => return id_destination,
@@ -132,15 +132,15 @@ mod almanac {
             id_source
         }
 
-        pub fn lookup_range(self: &Self, source: &Range<i64>) -> Vec<Range<i64>> {
+        pub fn lookup_range(&self, source: &Range<i64>) -> Vec<Range<i64>> {
             let mut all_unprocessed: Vec<Range<i64>> = [source.clone()].to_vec();
             let mut all_processed: Vec<Range<i64>> = Vec::new();
 
             for entry in &self.entries {
                 all_unprocessed = all_unprocessed
                     .iter()
-                    .map(|this_source| {
-                        let (new_processed, new_unprocessed) = entry.lookup_range(&this_source);
+                    .flat_map(|this_source| {
+                        let (new_processed, new_unprocessed) = entry.lookup_range(this_source);
 
                         match new_processed {
                             Some(x) => all_processed.push(x),
@@ -149,7 +149,6 @@ mod almanac {
 
                         new_unprocessed
                     })
-                    .flatten()
                     .collect();
             }
 
@@ -199,8 +198,7 @@ mod almanac {
                 // Replace the ranges with the result of applying this layer of mappings.
                 ranges = ranges
                     .iter()
-                    .map(|r| map.lookup_range(r))
-                    .flatten()
+                    .flat_map(|r| map.lookup_range(r))
                     .collect();
             }
             ranges
@@ -233,7 +231,7 @@ mod almanac {
                     let group = groups[i];
 
                     // Not using map name for now.
-                    let (_map_name_line, rest) = group.split_once("\n").ok_or(ParseAlmanacErr)?;
+                    let (_map_name_line, rest) = group.split_once('\n').ok_or(ParseAlmanacErr)?;
                     rest.parse::<RangeMap>().map_err(|_| ParseAlmanacErr)
                 })
                 .collect::<Result<Vec<_>, _>>()?;
