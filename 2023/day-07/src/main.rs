@@ -102,13 +102,13 @@ impl Ord for Hand {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         let self_type = self.hand_type();
         let other_type = other.hand_type();
-        if self_type < other_type {
-            Ordering::Less
-        } else if self_type > other_type {
-            Ordering::Greater
-        } else {
-            // Equality, so define ordering in terms of the cards lexicographically.
-            self.cards.cmp(&other.cards)
+        match self_type.cmp(&other_type) {
+            Ordering::Equal => {
+                // Equality, so define ordering in terms of the cards lexicographically.
+                self.cards.cmp(&other.cards)
+            }
+            // In other cases we are defined purely in terms of type comparison
+            x => x,
         }
     }
 }
