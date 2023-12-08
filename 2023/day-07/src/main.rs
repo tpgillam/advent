@@ -105,11 +105,6 @@ impl<const PART2: bool> Hand<PART2> {
                 return HandType::FiveOfAKind;
             }
 
-            // Ooh this is slightly magical -- because we are requiring that `new_label_to_count`
-            // is a HashMap due to the function call below, the compiler can figure that out here
-            // such that we don't need to specify the type explicitly here anywhere, even though
-            // we're just collecting from some iterator.
-            // (But maybe only if it is the _next_ call?)
             let mut new_label_to_count: HashMap<_, _> = label_to_count
                 .into_iter()
                 .filter(|&(k, _)| *k != joker)
