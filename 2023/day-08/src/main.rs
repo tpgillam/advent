@@ -114,7 +114,7 @@ fn part1(input: &str) -> u32 {
     let mut n: u32 = 0;
 
     while *node != finish {
-        node = make_move(&map, &node, it_directions.next().unwrap());
+        node = make_move(&map, node, it_directions.next().unwrap());
         n += 1
     }
 
