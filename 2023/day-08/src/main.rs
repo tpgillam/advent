@@ -201,7 +201,6 @@ fn find_cycle(map: &Map, start: &Node) -> Cycle {
             }
         }
 
-        // FIXME: do this later?
         // Advance to the next state.
         current_node = make_move(map, current_node, direction);
         i_step += 1;
@@ -332,7 +331,7 @@ fn completion_steps(cycles: &[Cycle]) -> usize {
         .unwrap() as usize;
     // println!("LCM: {}", lowest_common_multiple);
 
-    // Remember that we need to subtract the offset to get the actual answer.
+    // Remember that we need to subtract the _additional_ offset to get the actual answer.
     offset + lowest_common_multiple - additional_offset
 }
 
@@ -347,7 +346,7 @@ fn part2(input: &str) -> u64 {
         .filter(|&n| is_start_node(n))
         .collect();
 
-    // PERF: Whilst technically correct, the brute force approach is VERY slow for the full input.
+    // Whilst technically correct, the brute force approach is VERY slow for the full input.
     //
     //  We can be smarter -- we can trace each individual starting point, and then we have
     //  to identify each _potential_ finishing point before we form a cycle. To be sure that we
