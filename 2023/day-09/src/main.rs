@@ -4,32 +4,33 @@ fn get_input() -> &'static str {
 
 /// Take the difference of adjacent elements, and return as a vector.
 /// if the input `sequence` has length n, the result will have length n-1
-fn diff(sequence: &[u64]) -> Vec<u64> {
+fn diff(sequence: &[i64]) -> Vec<i64> {
     sequence.windows(2).map(|w| w[1] - w[0]).collect()
 }
 
-fn extrapolate(sequence: &[u64]) -> u64 {
+fn extrapolate(sequence: &[i64]) -> i64 {
     // Build up the differences.
-    let mut stack: Vec<Vec<u64>> = Vec::new();
-    while stack.len() == 0 || !stack.last().unwrap().iter().all(|x| *x == 0) {
+    let mut stack: Vec<Vec<i64>> = vec![sequence.to_vec()];
+    while !stack.last().unwrap().iter().all(|x| *x == 0) {
         stack.push(diff(stack.last().unwrap()))
     }
 
-    // Now extrapolate...
-    let mut x = 0u64;
-    while !stack.is_empty() {
-        let moo = stack.pop().unwrap();
-        // FIXME:
-        // FIXME:
-        // FIXME:
-        // FIXME:
-        // FIXME:
-    }
-    todo!();
+    // To extrapolate, we sum up the last digits of all the series.
+    stack.iter().map(|x| x.last().unwrap()).sum::<i64>()
 }
 
-fn part1(input: &str) -> u64 {
-    todo!()
+fn part1(input: &str) -> i64 {
+    input
+        .trim()
+        .lines()
+        .map(|line| {
+            let sequence: Vec<_> = line
+                .split_whitespace()
+                .map(|x| x.parse::<i64>().unwrap())
+                .collect();
+            extrapolate(&sequence)
+        })
+        .sum()
 }
 
 fn main() {
