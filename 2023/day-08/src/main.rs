@@ -121,15 +121,67 @@ fn part1(input: &str) -> u32 {
     n
 }
 
+fn finished(nodes: &Vec<&Node>) -> bool {
+    nodes.iter().all(|&n| match n.name {
+        (_, _, b'Z') => true,
+        _ => false,
+    })
+}
+
+fn part2(input: &str) -> u64 {
+    let map: Map = input.parse().unwrap();
+
+    // Find all starting nodes we will then update these until we
+    // reach the ending state.
+    let mut nodes: Vec<_> = map
+        .connections
+        .keys()
+        .filter(|&n| match n.name {
+            (_, _, b'A') => true,
+            _ => false,
+        })
+        .collect();
+
+    // An infinitely repeating iterator over directions.
+    let mut it_directions = map.directions.iter().cycle();
+
+    // How many steps we have taken?
+    let mut n: u64 = 0;
+
+    // PERF: Whilst technically correct, the following is VERY slow for the full input.
+    //
+    //  We can be smarter -- we can trace each individual starting point, and then we have
+    //  to identify each _potential_ finishing point before we form a cycle. To be sure that we
+    //  have found a cycle, we need to be at the SAME NODE and also at the SAME POINT in the
+    //  directions list as one that we have seen previously. This does seem quite fiddly though...
+    //
+    //  Once you have this, you could perform a bit of prime factor bashing to get the lowest
+    //  common multiple of all periods  (the difficulty being that each starting point could have
+    //  _multiple_ periods, and also potentially have an offset before the cycle starts).
+    // 
+    // NOTE: Other observations from full input:
+    //  - None of the starting nodes are ever referenced in the connectivity graph... so cycles
+    //      definitely do NOT include the starting node. The same is true in the example.
+    while !finished(&nodes) {
+        let direction = it_directions.next().unwrap();
+        for node in nodes.iter_mut() {
+            *node = make_move(&map, node, direction);
+        }
+        n += 1
+    }
+
+    n
+}
+
 fn main() {
     let input = get_input();
     println!("Part1: {}", part1(input));
-    // println!("Part2: {}", part2(input));
+    println!("Part2: {}", part2(input));
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::part1;
+    use crate::{part1, part2};
 
     const EXAMPLE_1: &str = "
 RL
@@ -153,5 +205,22 @@ ZZZ = (ZZZ, ZZZ)";
     fn test_part1_examples() {
         assert_eq!(part1(EXAMPLE_1), 2);
         assert_eq!(part1(EXAMPLE_2), 6);
+    }
+
+    const EXAMPLE_3: &str = "
+LR
+
+11A = (11B, XXX)
+11B = (XXX, 11Z)
+11Z = (11B, XXX)
+22A = (22B, XXX)
+22B = (22C, 22C)
+22C = (22Z, 22Z)
+22Z = (22B, 22B)
+XXX = (XXX, XXX)";
+
+    #[test]
+    fn test_part2_example() {
+        assert_eq!(part2(EXAMPLE_3), 6)
     }
 }
