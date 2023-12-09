@@ -4,8 +4,6 @@ use std::{
     str::FromStr,
 };
 
-use num;
-
 fn get_input() -> &'static str {
     include_str!("../input.txt")
 }
@@ -136,17 +134,11 @@ fn part1(input: &str) -> u32 {
 }
 
 fn is_start_node(node: &Node) -> bool {
-    match node.name {
-        (_, _, b'A') => true,
-        _ => false,
-    }
+    matches!(node.name, (_, _, b'A'))
 }
 
 fn is_finish_node(node: &Node) -> bool {
-    match node.name {
-        (_, _, b'Z') => true,
-        _ => false,
-    }
+    matches!(node.name, (_, _, b'Z'))
 }
 
 #[derive(Debug)]
@@ -211,7 +203,7 @@ fn find_cycle(map: &Map, start: &Node) -> Cycle {
 
         // FIXME: do this later?
         // Advance to the next state.
-        current_node = make_move(&map, current_node, direction);
+        current_node = make_move(map, current_node, direction);
         i_step += 1;
     }
 }
@@ -267,7 +259,7 @@ impl SimpleCycle {
 
 /// Return the number of steps that it would take to finish, given
 /// the extracted cycles.
-fn completion_steps(cycles: &Vec<Cycle>) -> usize {
+fn completion_steps(cycles: &[Cycle]) -> usize {
     // NOTE: This is a little disgusting, as it required manual inspection of
     //  the problem input, but the following useful additional properties were true:
     //
