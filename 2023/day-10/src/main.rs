@@ -237,57 +237,107 @@ fn part1(input: &str) -> u32 {
     n / 2
 }
 
+fn part2(input: &str) -> u32 {
+    let pipes = get_pipes(input);
+
+    todo!()
+}
+
 fn main() {
     let input = get_input();
     println!("Part1: {}", part1(input));
-    // println!("Part2: {}", part2(input));
+    println!("Part2: {}", part2(input));
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::part1;
+    use crate::{part1, part2};
 
-    const EXAMPLE_1A: &str = "
+    #[test]
+    fn test_part1_example1a() {
+        let example = "
 .....
 .S-7.
 .|.|.
 .L-J.
 .....";
-
-    const EXAMPLE_1B: &str = "
+        assert_eq!(part1(example), 4);
+    }
+    #[test]
+    fn test_part1_example1b() {
+        let example = "
 -L|F7
 7S-7|
 L|7||
 -L-J|
 L|-JF";
-
-    const EXAMPLE_2A: &str = "
+        assert_eq!(part1(example), 4);
+    }
+    #[test]
+    fn test_part1_example2a() {
+        let example = "
 ..F7.
 .FJ|.
 SJ.L7
 |F--J
 LJ...";
-    const EXAMPLE_2B: &str = "
+        assert_eq!(part1(example), 8);
+    }
+    #[test]
+    fn test_part1_example2b() {
+        let example = "
 7-F7-
 .FJ|7
 SJLL7
 |F--J
 LJ.LJ";
+        assert_eq!(part1(example), 8);
+    }
 
     #[test]
-    fn test_part1_example1a() {
-        assert_eq!(part1(EXAMPLE_1A), 4);
+    fn test_part2_example1() {
+        let example = "
+...........
+.S-------7.
+.|F-----7|.
+.||.....||.
+.||.....||.
+.|L-7.F-J|.
+.|..|.|..|.
+.L--J.L--J.
+...........";
+        assert_eq!(part2(example), 4);
     }
+
     #[test]
-    fn test_part1_example1b() {
-        assert_eq!(part1(EXAMPLE_1B), 4);
+    fn test_part2_example2() {
+        let example = "
+.F----7F7F7F7F-7....
+.|F--7||||||||FJ....
+.||.FJ||||||||L7....
+FJL7L7LJLJ||LJ.L-7..
+L--J.L7...LJS7F-7L7.
+....F-J..F7FJ|L7L7L7
+....L7.F7||L7|.L7L7|
+.....|FJLJ|FJ|F7|.LJ
+....FJL-7.||.||||...
+....L---J.LJ.LJLJ...";
+        assert_eq!(part2(example), 8);
     }
+
     #[test]
-    fn test_part1_example2a() {
-        assert_eq!(part1(EXAMPLE_2A), 8);
-    }
-    #[test]
-    fn test_part1_example2b() {
-        assert_eq!(part1(EXAMPLE_2B), 8);
+    fn test_part2_example3() {
+        let example = "
+FF7FSF7F7F7F7F7F---7
+L|LJ||||||||||||F--J
+FL-7LJLJ||||||LJL-77
+F--JF--7||LJLJ7F7FJ-
+L---JF-JLJ.||-FJLJJ7
+|F|F-JF---7F7-L7L|7|
+|FFJF7L7F-JF7|JL---7
+7-L-JL7||F7|L7F-7F7|
+L.L7LFJ|||||FJL7||LJ
+L7JLJL-JLJLJL--JLJ.L";
+        assert_eq!(part2(example), 10);
     }
 }
