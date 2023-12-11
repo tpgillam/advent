@@ -278,13 +278,15 @@ fn handle_directions(
     directions: (Direction, Direction),
     is_inside: &mut bool,
     interior_count: &mut u32,
+    north_on_stack: &mut bool,
+    south_on_stack: &mut bool,
 ) -> () {
     let on_loop = loop_locations.contains(&location);
 
-    println!("Thing: {:?}", location);
+    // println!("Thing: {:?}", location);
     // A pipe can be an interior cell if it isn't on the loop.
     if *is_inside && !on_loop {
-        println!("Pipe inside: {:?}", location);
+        // println!("Pipe inside: {:?}", location);
         *interior_count += 1;
     }
 
@@ -295,13 +297,50 @@ fn handle_directions(
         // from (West) and are going to (East) are _not_ in the pipe.
         let (dir_0, dir_1) = directions;
         let directions_arr = [dir_0, dir_1];
-        // FIXME: This isn't correct.
-        //  We need to do something to count the number of norths and souths we have come across.
-        //  Think about "s bends" (which should change state) vs "u bends" (which should not).
-        if !directions_arr.contains(&Direction::East) && !directions_arr.contains(&Direction::West)
-        {
+
+        // We need to do something to count the number of norths and souths we have come across.
+        //  Think about "S bends" (which should change state) vs "U bends" (which should not).
+        let has_north = directions_arr.contains(&Direction::North);
+        let has_south = directions_arr.contains(&Direction::South);
+
+        if has_north && has_south {
+            // We have unambiguously crossed a pipe.
             *is_inside = !(*is_inside);
+        } else if has_north {
+            if *south_on_stack {
+                assert!(!(*north_on_stack));
+
+                // This completes the pipe -- we have crossed!
+                *is_inside = !(*is_inside);
+                *south_on_stack = false;
+            } else if *north_on_stack {
+                // We already have a north on the stack -- this resets it, and we do not
+                // cross the pipe.
+                *north_on_stack = false;
+            } else {
+                *north_on_stack = true;
+            }
+        } else if has_south {
+            // The inverse logic to the above.
+            if *north_on_stack {
+                assert!(!(*south_on_stack));
+
+                // This completes the pipe -- we have crossed!
+                *is_inside = !(*is_inside);
+                *north_on_stack = false;
+            } else if *south_on_stack {
+                // We already have a south on the stack -- this resets it, and we do not
+                // cross the pipe.
+                *south_on_stack = false;
+            } else {
+                *south_on_stack = true;
+            }
         }
+
+        // if !directions_arr.contains(&Direction::East) && !directions_arr.contains(&Direction::West)
+        // {
+        //     *is_inside = !(*is_inside);
+        // }
     }
 }
 
@@ -320,6 +359,10 @@ fn part2(input: &str) -> u32 {
             // As we go along the row, this will record whether or not we are on the 'outside'
             let mut is_inside = false;
 
+            // Internal state for tracking whether we have crossed.
+            let mut north_on_stack = false;
+            let mut south_on_stack = false;
+
             // This will record the number of interior cells we have found.
             let mut interior_count: u32 = 0;
 
@@ -330,7 +373,7 @@ fn part2(input: &str) -> u32 {
                 match cell {
                     Cell::Ground => {
                         if is_inside {
-                            println!("Ground inside: {:?}", location);
+                            // println!("Ground inside: {:?}", location);
                             interior_count += 1
                         }
                     }
@@ -340,6 +383,8 @@ fn part2(input: &str) -> u32 {
                         directions,
                         &mut is_inside,
                         &mut interior_count,
+                        &mut north_on_stack,
+                        &mut south_on_stack,
                     ),
                     Cell::Start(start) => {
                         // The start is just like a pipe, except we need to figure out what the
@@ -352,12 +397,14 @@ fn part2(input: &str) -> u32 {
                             directions,
                             &mut is_inside,
                             &mut interior_count,
+                            &mut north_on_stack,
+                            &mut south_on_stack,
                         )
                     }
                 }
             }
 
-            println!("Interior count: {:?}", interior_count);
+            // println!("Interior count: {:?}", interior_count);
             interior_count
         })
         .sum()
