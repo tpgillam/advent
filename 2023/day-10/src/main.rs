@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use ndarray::{concatenate, Array, Axis, Ix2};
 
 fn get_input() -> &'static str {
@@ -237,10 +239,128 @@ fn part1(input: &str) -> u32 {
     n / 2
 }
 
+fn get_loop_locations(pipes: &Pipes) -> HashSet<(usize, usize)> {
+    let start = get_start(&pipes);
+
+    let directions = get_start_directions(pipes, &start);
+
+    let mut state = State {
+        // Arbitrarily pick a direction to go from the start;
+        previous_direction: directions.0.inverse(),
+        // Slight hack... we _know_ the pipe under the start now, so use that.
+        cell: Cell::Pipe {
+            location: start.location,
+            directions,
+        },
+    };
+
+    let mut result: HashSet<(usize, usize)> = HashSet::new();
+    // Since we don't have access to the start location in the state, we
+    // add it here.
+    result.insert(start.location);
+
+    loop {
+        let next_state = get_next_state(&pipes, &state);
+
+        match next_state.cell {
+            Cell::Pipe { location, .. } => result.insert(location),
+            Cell::Start(..) => break result,
+            Cell::Ground => unreachable!(),
+        };
+        state = next_state;
+    }
+}
+
+// Extracting a closure to avoid repetition in the match arms
+fn handle_directions(
+    loop_locations: &HashSet<(usize, usize)>,
+    location: &(usize, usize),
+    directions: (Direction, Direction),
+    is_inside: &mut bool,
+    interior_count: &mut u32,
+) -> () {
+    let on_loop = loop_locations.contains(&location);
+
+    println!("Thing: {:?}", location);
+    // A pipe can be an interior cell if it isn't on the loop.
+    if *is_inside && !on_loop {
+        println!("Pipe inside: {:?}", location);
+        *interior_count += 1;
+    }
+
+    // If this is part of the loop, as we leave we must check whether
+    // we need to change the state.
+    if on_loop {
+        // We _cross_ the pipe if and only if both the directions we came
+        // from (West) and are going to (East) are _not_ in the pipe.
+        let (dir_0, dir_1) = directions;
+        let directions_arr = [dir_0, dir_1];
+        // FIXME: This isn't correct.
+        //  We need to do something to count the number of norths and souths we have come across.
+        //  Think about "s bends" (which should change state) vs "u bends" (which should not).
+        if !directions_arr.contains(&Direction::East) && !directions_arr.contains(&Direction::West)
+        {
+            *is_inside = !(*is_inside);
+        }
+    }
+}
+
 fn part2(input: &str) -> u32 {
     let pipes = get_pipes(input);
 
-    todo!()
+    // To determine the enclosed area, we must first find which cells are occupied
+    // by the loop.
+    let loop_locations: HashSet<(usize, usize)> = get_loop_locations(&pipes);
+
+    // We iterate over all locations, recording whether we are inside or outside.
+    // Note that we can calculate each row independently.
+    let (ni, nj) = pipes.dim();
+    (0..ni)
+        .map(|i| {
+            // As we go along the row, this will record whether or not we are on the 'outside'
+            let mut is_inside = false;
+
+            // This will record the number of interior cells we have found.
+            let mut interior_count: u32 = 0;
+
+            for j in 0..nj {
+                let location = (i, j);
+                let cell = Cell::new(pipes[location], location).unwrap();
+
+                match cell {
+                    Cell::Ground => {
+                        if is_inside {
+                            println!("Ground inside: {:?}", location);
+                            interior_count += 1
+                        }
+                    }
+                    Cell::Pipe { directions, .. } => handle_directions(
+                        &loop_locations,
+                        &location,
+                        directions,
+                        &mut is_inside,
+                        &mut interior_count,
+                    ),
+                    Cell::Start(start) => {
+                        // The start is just like a pipe, except we need to figure out what the
+                        // underlying pipe looks like first.
+                        let directions = get_start_directions(&pipes, &start);
+
+                        handle_directions(
+                            &loop_locations,
+                            &location,
+                            directions,
+                            &mut is_inside,
+                            &mut interior_count,
+                        )
+                    }
+                }
+            }
+
+            println!("Interior count: {:?}", interior_count);
+            interior_count
+        })
+        .sum()
 }
 
 fn main() {
