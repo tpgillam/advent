@@ -202,7 +202,7 @@ fn get_next_state(pipes: &Pipes, state: &State) -> State {
 }
 
 fn get_loop_length(pipes: &Pipes) -> u32 {
-    let start = get_start(&pipes);
+    let start = get_start(pipes);
 
     let directions = get_start_directions(pipes, &start);
 
@@ -219,7 +219,7 @@ fn get_loop_length(pipes: &Pipes) -> u32 {
     // Count the number of steps we have taken
     let mut n = 0;
     loop {
-        let next_state = get_next_state(&pipes, &state);
+        let next_state = get_next_state(pipes, &state);
         n += 1;
 
         if let Cell::Start(..) = next_state.cell {
@@ -240,7 +240,7 @@ fn part1(input: &str) -> u32 {
 }
 
 fn get_loop_locations(pipes: &Pipes) -> HashSet<(usize, usize)> {
-    let start = get_start(&pipes);
+    let start = get_start(pipes);
 
     let directions = get_start_directions(pipes, &start);
 
@@ -260,7 +260,7 @@ fn get_loop_locations(pipes: &Pipes) -> HashSet<(usize, usize)> {
     result.insert(start.location);
 
     loop {
-        let next_state = get_next_state(&pipes, &state);
+        let next_state = get_next_state(pipes, &state);
 
         match next_state.cell {
             Cell::Pipe { location, .. } => result.insert(location),
@@ -280,8 +280,8 @@ fn handle_directions(
     interior_count: &mut u32,
     north_on_stack: &mut bool,
     south_on_stack: &mut bool,
-) -> () {
-    let on_loop = loop_locations.contains(&location);
+) {
+    let on_loop = loop_locations.contains(location);
 
     // println!("Thing: {:?}", location);
     // A pipe can be an interior cell if it isn't on the loop.
