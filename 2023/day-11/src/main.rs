@@ -67,7 +67,7 @@ fn manhattan_distance(a: &Location, b: &Location) -> u64 {
     (x_diff + y_diff) as u64
 }
 
-fn total_distance(locations: &Vec<Location>) -> u64 {
+fn total_distance(locations: &[Location]) -> u64 {
     // Compute the sum of distances between all pairs of galaxies.
     locations
         .iter()
@@ -107,7 +107,7 @@ fn distance_sum_with_expansion_factor(input: &str, factor: u64) -> u64 {
     // in the index, so need the "- 1" to avoid double counting.
     let alpha = (factor as i64) - 1;
 
-    let expanded_locations = locations
+    let expanded_locations: Vec<_> = locations
         .iter()
         .map(|&(i, j)| {
             // Look at the number of rows / columns that we need to add
