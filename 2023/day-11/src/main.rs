@@ -37,7 +37,7 @@ fn double_axis(galaxies: &Galaxies, axis: Axis) -> Galaxies {
 
     // Iterate over rows, and build output with additional rows as necessary.
     let mut new_rows = Vec::new();
-    galaxies.axis_iter(axis).into_iter().for_each(|row| {
+    galaxies.axis_iter(axis).for_each(|row| {
         let reshaped_row = row.insert_axis(axis);
         new_rows.push(reshaped_row);
         if row.sum() == 0 {
@@ -48,7 +48,7 @@ fn double_axis(galaxies: &Galaxies, axis: Axis) -> Galaxies {
 }
 
 fn get_expanded_galaxies(galaxies: &Galaxies) -> Galaxies {
-    double_axis(&double_axis(&galaxies, Axis(0)), Axis(1))
+    double_axis(&double_axis(galaxies, Axis(0)), Axis(1))
 }
 
 type Location = (usize, usize);
