@@ -1,7 +1,7 @@
 use itertools::Itertools;
 use ndarray::{concatenate, Array, Axis, Ix2};
 
-type Galaxies = Array<u32, Ix2>;
+type Galaxies = Array<u64, Ix2>;
 
 fn get_input() -> &'static str {
     include_str!("../input.txt")
@@ -60,18 +60,14 @@ fn get_galaxy_locations(galaxies: &Galaxies) -> Vec<Location> {
         .collect()
 }
 
-fn manhattan_distance(a: &Location, b: &Location) -> u32 {
+fn manhattan_distance(a: &Location, b: &Location) -> u64 {
     let x_diff = ((a.0 as i32) - (b.0 as i32)).abs();
     let y_diff = ((a.1 as i32) - (b.1 as i32)).abs();
     // Both x_diff and y_diff will be non-negative due to taking the absolute value.
-    (x_diff + y_diff) as u32
+    (x_diff + y_diff) as u64
 }
 
-fn part1(input: &str) -> u32 {
-    let galaxies = get_galaxies(input);
-    let expanded_galaxies = get_expanded_galaxies(&galaxies);
-    let locations = get_galaxy_locations(&expanded_galaxies);
-
+fn total_distance(locations: &Vec<Location>) -> u64 {
     // Compute the sum of distances between all pairs of galaxies.
     locations
         .iter()
@@ -83,15 +79,60 @@ fn part1(input: &str) -> u32 {
         .sum()
 }
 
+fn part1(input: &str) -> u64 {
+    let galaxies = get_galaxies(input);
+    let expanded_galaxies = get_expanded_galaxies(&galaxies);
+    let locations = get_galaxy_locations(&expanded_galaxies);
+    total_distance(&locations)
+}
+
+fn get_empty_indices(galaxies: &Galaxies, axis: Axis) -> Vec<usize> {
+    galaxies
+        .sum_axis(axis)
+        .indexed_iter()
+        .filter_map(|(i, &x)| if x == 0 { Some(i) } else { None })
+        .collect()
+}
+
+fn distance_sum_with_expansion_factor(input: &str, factor: u64) -> u64 {
+    let galaxies = get_galaxies(input);
+
+    // Get the indices of the empty rows and columns
+    let empty_j = get_empty_indices(&galaxies, Axis(0));
+    let empty_i = get_empty_indices(&galaxies, Axis(1));
+
+    let locations = get_galaxy_locations(&galaxies);
+
+    // This is the scaling factor. Note that we _already_ include the original row
+    // in the index, so need the "- 1" to avoid double counting.
+    let alpha = (factor as i64) - 1;
+
+    let expanded_locations = locations
+        .iter()
+        .map(|&(i, j)| {
+            // Look at the number of rows / columns that we need to add
+            let n_i = empty_i.iter().filter(|&&this_i| this_i < i).count() as i64;
+            let n_j = empty_j.iter().filter(|&&this_j| this_j < j).count() as i64;
+            (i + (n_i * alpha) as usize, j + (n_j * alpha) as usize)
+        })
+        .collect();
+
+    total_distance(&expanded_locations)
+}
+
+fn part2(input: &str) -> u64 {
+    distance_sum_with_expansion_factor(input, 1000000)
+}
+
 fn main() {
     let input = get_input();
     println!("Part1: {}", part1(input));
-    // println!("Part2: {}", part2(input));
+    println!("Part2: {}", part2(input));
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::part1;
+    use crate::{distance_sum_with_expansion_factor, part1};
 
     const EXAMPLE: &str = "
 ...#......
@@ -108,5 +149,11 @@ mod tests {
     #[test]
     fn part1_example() {
         assert_eq!(part1(EXAMPLE), 374);
+    }
+
+    #[test]
+    fn part2_example() {
+        assert_eq!(distance_sum_with_expansion_factor(EXAMPLE, 10), 1030);
+        assert_eq!(distance_sum_with_expansion_factor(EXAMPLE, 100), 8410);
     }
 }
