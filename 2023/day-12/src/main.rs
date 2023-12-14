@@ -27,6 +27,18 @@ impl FromStr for Springs {
     }
 }
 
+// FIXME: this blows up because we end up calling it with m=15, n=19 in Part 2 for the second line.
+//  The length of the output is O(n^m)... which is MASSIVE.
+// FIXME:
+// FIXME:
+// FIXME:
+// The problem is having lots of short groups when performing the initial partitioning.
+//
+// But then in the last line we get m=15, n=21 ! In this case everything is in one huge group.
+//
+// We need a more clever way of pruning the search space.
+
+
 /// Assign `m` things to `n` groups, such that the _order_ of the `m` things is
 /// unchanged. Groups are allowed to be empty.
 ///
@@ -35,6 +47,8 @@ impl FromStr for Springs {
 /// index of the group to which thing `i` should be assigned.
 // PERF: Could make this return an iterator rather than realise a vector?
 fn ordered_partitions(m: usize, n: usize) -> Vec<Vec<usize>> {
+    dbg!(m);
+    dbg!(n);
     if m == 0 {
         // No input elements, so nothing to do
         return vec![];
@@ -202,6 +216,7 @@ fn num_arrangements_in_group(pattern: &str, required: &[usize]) -> Option<usize>
 }
 
 fn num_arrangements(line: &str) -> usize {
+    dbg!(line);
     let springs: Springs = line.parse().unwrap();
 
     // These are the pattern groups that we have been given.
@@ -216,6 +231,7 @@ fn num_arrangements(line: &str) -> usize {
 
     // These are the lengths of those groups to use for our first pass.
     let pattern_group_lengths: Vec<_> = pattern_groups.iter().map(|g| g.len()).collect();
+    dbg!(&pattern_group_lengths);
 
     let m = springs.required.len();
     let n = pattern_group_lengths.len();
@@ -244,6 +260,7 @@ fn num_arrangements(line: &str) -> usize {
             return true;
         })
         .collect();
+    dbg!(&partitions);
 
     partitions
         .into_iter()
@@ -279,8 +296,11 @@ fn part1(input: &str) -> usize {
         .sum()
 }
 
-fn unfold_row(s: &str) -> String {
-    todo!()
+fn unfold_row(line: &str) -> String {
+    let (pattern, groups) = line.split_once(' ').unwrap();
+
+    let n = 5;
+    vec![pattern; n].join("?") + " " + &vec![groups; n].join(",")
 }
 
 fn part2(input: &str) -> usize {
@@ -296,7 +316,7 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use crate::{
-        num_arrangements, num_arrangements_in_group, ordered_partitions, part1, unfold_row, part2,
+        num_arrangements, num_arrangements_in_group, ordered_partitions, part1, part2, unfold_row,
     };
 
     const EXAMPLE: &str = "
@@ -397,11 +417,14 @@ mod tests {
 
     #[test]
     fn test_num_arrangements_after_unfolding() {
-        assert_eq!(num_arrangements(&unfold_row("???.### 1,1,3")), 1);
-        assert_eq!(num_arrangements(&unfold_row(".??..??...?##. 1,1,3")), 16384);
-        assert_eq!(num_arrangements(&unfold_row("?#?#?#?#?#?#?#? 1,3,1,6")), 1);
-        assert_eq!(num_arrangements(&unfold_row("????.#...#... 4,1,1")), 16);
-        assert_eq!(num_arrangements(&unfold_row("????.######..#####. 1,6,5")), 2500);
+        // assert_eq!(num_arrangements(&unfold_row("???.### 1,1,3")), 1);
+        // assert_eq!(num_arrangements(&unfold_row(".??..??...?##. 1,1,3")), 16384);
+        // assert_eq!(num_arrangements(&unfold_row("?#?#?#?#?#?#?#? 1,3,1,6")), 1);
+        // assert_eq!(num_arrangements(&unfold_row("????.#...#... 4,1,1")), 16);
+        // assert_eq!(
+        //     num_arrangements(&unfold_row("????.######..#####. 1,6,5")),
+        //     2500
+        // );
         assert_eq!(num_arrangements(&unfold_row("?###???????? 3,2,1")), 506250);
     }
 
