@@ -279,15 +279,25 @@ fn part1(input: &str) -> usize {
         .sum()
 }
 
+fn unfold_row(s: &str) -> String {
+    todo!()
+}
+
+fn part2(input: &str) -> usize {
+    todo!()
+}
+
 fn main() {
     let input = get_input();
     println!("Part1: {}", part1(input));
-    // println!("Part2: {}", part2(input));
+    println!("Part2: {}", part2(input));
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{num_arrangements, num_arrangements_in_group, ordered_partitions, part1};
+    use crate::{
+        num_arrangements, num_arrangements_in_group, ordered_partitions, part1, unfold_row, part2,
+    };
 
     const EXAMPLE: &str = "
 ???.### 1,1,3
@@ -374,5 +384,29 @@ mod tests {
     #[test]
     fn test_part1_example() {
         assert_eq!(part1(EXAMPLE), 21);
+    }
+
+    #[test]
+    fn test_unfold_row() {
+        assert_eq!(unfold_row(".# 1"), ".#?.#?.#?.#?.# 1,1,1,1,1".to_string());
+        assert_eq!(
+            unfold_row("???.### 1,1,3"),
+            "???.###????.###????.###????.###????.### 1,1,3,1,1,3,1,1,3,1,1,3,1,1,3".to_string()
+        );
+    }
+
+    #[test]
+    fn test_num_arrangements_after_unfolding() {
+        assert_eq!(num_arrangements(&unfold_row("???.### 1,1,3")), 1);
+        assert_eq!(num_arrangements(&unfold_row(".??..??...?##. 1,1,3")), 16384);
+        assert_eq!(num_arrangements(&unfold_row("?#?#?#?#?#?#?#? 1,3,1,6")), 1);
+        assert_eq!(num_arrangements(&unfold_row("????.#...#... 4,1,1")), 16);
+        assert_eq!(num_arrangements(&unfold_row("????.######..#####. 1,6,5")), 2500);
+        assert_eq!(num_arrangements(&unfold_row("?###???????? 3,2,1")), 506250);
+    }
+
+    #[test]
+    fn test_part2_example() {
+        assert_eq!(part2(EXAMPLE), 525152);
     }
 }
