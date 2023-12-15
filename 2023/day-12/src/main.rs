@@ -318,7 +318,7 @@ fn is_valid_start(i_start: usize, n: usize, pattern: &str) -> bool {
         return false;
     }
 
-    if (i_last < n - 1) && (bytes[i_last + 1] == b'#') {
+    if (i_last < pattern.len() - 1) && (bytes[i_last + 1] == b'#') {
         // We cannot be adjacent to a spring on our right.
         return false;
     }
@@ -371,29 +371,27 @@ fn prune_i_starts_from_above(
 
     // We keep track of the most constraining upper bound as we iterate through, and apply it to
     // the next item.
-    let mut max_i_start = *group_i_starts.last().unwrap().last().unwrap();
+    let mut max_i_last =
+        *group_i_starts.last().unwrap().last().unwrap() + (groups.last().unwrap() - 1);
 
     // NOTE: We iterate through the groups _backwards_
     for (i_starts, group_length) in group_i_starts.iter().zip(groups).rev() {
+        let max_i_start = max_i_last - (group_length - 1);
+
         // Filter this group according to the current maximum.
         let new_i_starts: Vec<_> = i_starts
             .iter()
             .filter(|&&x| x <= max_i_start)
             .map(|&x| x)
             .collect();
+        // println!();
+        // dbg!(&max_i_last);
+        // dbg!(&max_i_start);
+        // dbg!(&new_i_starts);
 
-        // The new maximum is computed.
-        let subtractor = group_length + 1;
-
-        // NOTE: this assumes that i_starts is sorted, which it will be.
-        let current_max = *new_i_starts.last().unwrap();
-
-        // Avoid underflow!
-        max_i_start = if current_max < subtractor {
-            0
-        } else {
-            current_max - subtractor
-        };
+        // The new maximum index of the last value is 2 before the current maximum first-value
+        // index.
+        max_i_last = *new_i_starts.last().unwrap() - 2;
 
         // We store the filtered group.
         reversed_result.push(new_i_starts);
@@ -403,7 +401,6 @@ fn prune_i_starts_from_above(
     reversed_result.reverse();
     reversed_result
 }
-
 
 /// Second attempt at computing the number of allowed arrangements.
 /// Attempting to have better complexity than `num_arrangements`!
@@ -467,7 +464,10 @@ fn num_arrangements_2(line: &str) -> usize {
     for i_starts in &pruned_max_i_starts {
         println!("{:?}", &i_starts);
     }
-    dbg!(pruned_max_i_starts.iter().map(|x| x.len()).product::<usize>());
+    dbg!(pruned_max_i_starts
+        .iter()
+        .map(|x| x.len())
+        .product::<usize>());
 
     // Now do the same thing for a _lower_ bound on i_start.
     let pruned_min_i_starts = prune_i_starts_from_below(&groups, &pruned_max_i_starts);
@@ -477,7 +477,10 @@ fn num_arrangements_2(line: &str) -> usize {
     for i_starts in &pruned_min_i_starts {
         println!("{:?}", &i_starts);
     }
-    dbg!(pruned_min_i_starts.iter().map(|x| x.len()).product::<usize>());
+    dbg!(pruned_min_i_starts
+        .iter()
+        .map(|x| x.len())
+        .product::<usize>());
 
     // FIXME: More pruning needs doing!
     //  The final line of the unfolded example still gives an unamanageably large number of cases
