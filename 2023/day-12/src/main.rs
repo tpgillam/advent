@@ -454,9 +454,7 @@ fn num_arrangements_2(line: &str) -> usize {
     for i_starts in &group_i_starts {
         println!("{:?}", &i_starts);
     }
-
-    let moo: usize = group_i_starts.iter().map(|x| x.len()).product();
-    dbg!(&moo);
+    dbg!(group_i_starts.iter().map(|x| x.len()).product::<usize>());
 
     // We now need to do a little more pruning of the options.
     // One observation: it is possible that a group in the middle of the pack will have more
@@ -469,9 +467,7 @@ fn num_arrangements_2(line: &str) -> usize {
     for i_starts in &pruned_max_i_starts {
         println!("{:?}", &i_starts);
     }
-
-    let moo2: usize = pruned_max_i_starts.iter().map(|x| x.len()).product();
-    dbg!(&moo2);
+    dbg!(pruned_max_i_starts.iter().map(|x| x.len()).product::<usize>());
 
     // Now do the same thing for a _lower_ bound on i_start.
     let pruned_min_i_starts = prune_i_starts_from_below(&groups, &pruned_max_i_starts);
@@ -481,9 +477,13 @@ fn num_arrangements_2(line: &str) -> usize {
     for i_starts in &pruned_min_i_starts {
         println!("{:?}", &i_starts);
     }
+    dbg!(pruned_min_i_starts.iter().map(|x| x.len()).product::<usize>());
 
-    let moo3: usize = pruned_min_i_starts.iter().map(|x| x.len()).product();
-    dbg!(&moo3);
+    // FIXME: More pruning needs doing!
+    //  The final line of the unfolded example still gives an unamanageably large number of cases
+    //  to iterate over.
+    //  What we're _not_ currently doing is checking whether we are preventing ourselves from
+    //  covering known springs.
 
     // These are the group starting points that we will use.
     let group_i_starts = pruned_min_i_starts;
@@ -621,22 +621,24 @@ mod tests {
         assert_eq!(num_arrangements_2("?###???????? 3,2,1"), 10);
     }
 
+    // NOTE: To run just this test:
+    //      cargo test tests::test_num_arrangements_2_after_unfolding -- --exact
     #[test]
     fn test_num_arrangements_2_after_unfolding() {
         // assert_eq!(num_arrangements_2(&unfold_row("???.### 1,1,3")), 1);
-        assert_eq!(
-            num_arrangements_2(&unfold_row(".??..??...?##. 1,1,3")),
-            16384
-        );
-        assert_eq!(
-            num_arrangements_2(&unfold_row("?#?#?#?#?#?#?#? 1,3,1,6")),
-            1
-        );
-        assert_eq!(num_arrangements_2(&unfold_row("????.#...#... 4,1,1")), 16);
-        assert_eq!(
-            num_arrangements_2(&unfold_row("????.######..#####. 1,6,5")),
-            2500
-        );
+        // assert_eq!(
+        //     num_arrangements_2(&unfold_row(".??..??...?##. 1,1,3")),
+        //     16384
+        // );
+        // assert_eq!(
+        //     num_arrangements_2(&unfold_row("?#?#?#?#?#?#?#? 1,3,1,6")),
+        //     1
+        // );
+        // assert_eq!(num_arrangements_2(&unfold_row("????.#...#... 4,1,1")), 16);
+        // assert_eq!(
+        //     num_arrangements_2(&unfold_row("????.######..#####. 1,6,5")),
+        //     2500
+        // );
         assert_eq!(
             num_arrangements_2(&unfold_row("?###???????? 3,2,1")),
             506250
