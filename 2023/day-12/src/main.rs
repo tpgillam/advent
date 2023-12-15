@@ -38,7 +38,6 @@ impl FromStr for Springs {
 //
 // We need a more clever way of pruning the search space.
 
-
 /// Assign `m` things to `n` groups, such that the _order_ of the `m` things is
 /// unchanged. Groups are allowed to be empty.
 ///
@@ -303,6 +302,199 @@ fn unfold_row(line: &str) -> String {
     vec![pattern; n].join("?") + " " + &vec![groups; n].join(",")
 }
 
+/// Return `true` iff `i_start` is a potentially valid location to start a group of length `n`.
+fn is_valid_start(i_start: usize, n: usize, pattern: &str) -> bool {
+    let bytes = pattern.as_bytes();
+
+    // This is the last index of the group.
+    let i_last = i_start + n - 1;
+
+    if i_last >= pattern.len() {
+        return false;
+    }
+
+    if (i_start > 0) && (bytes[i_start - 1] == b'#') {
+        // We cannot be adjacent to a spring on our left.
+        return false;
+    }
+
+    if (i_last < n - 1) && (bytes[i_last + 1] == b'#') {
+        // We cannot be adjacent to a spring on our right.
+        return false;
+    }
+
+    for i in i_start..=i_last {
+        if bytes[i] == b'.' {
+            // The group cannot overlap with a ground cell.
+            return false;
+        }
+    }
+
+    // No obvious objections at this stage... let it through!
+    true
+}
+
+fn prune_i_starts_from_below(
+    groups: &Vec<usize>,
+    group_i_starts: &Vec<Vec<usize>>,
+) -> Vec<Vec<usize>> {
+    let mut result: Vec<Vec<usize>> = Vec::new();
+
+    // We keep track of the most constraining lower bound as we iterate through, and apply it to
+    // the next item.
+    let mut min_i_start = 0usize;
+
+    for (i_starts, group_length) in group_i_starts.iter().zip(groups) {
+        // Filter this group according to the current minimum.
+        let new_i_starts: Vec<_> = i_starts
+            .iter()
+            .filter(|&&x| x >= min_i_start)
+            .map(|&x| x)
+            .collect();
+
+        // The new minimum is computed.
+        // NOTE: this assumes that i_starts is sorted, which it will be.
+        min_i_start = new_i_starts.first().unwrap() + (group_length + 1);
+
+        // We store the filtered group.
+        result.push(new_i_starts);
+    }
+
+    result
+}
+
+fn prune_i_starts_from_above(
+    groups: &Vec<usize>,
+    group_i_starts: &Vec<Vec<usize>>,
+) -> Vec<Vec<usize>> {
+    let mut reversed_result: Vec<Vec<usize>> = Vec::new();
+
+    // We keep track of the most constraining upper bound as we iterate through, and apply it to
+    // the next item.
+    let mut max_i_start = *group_i_starts.last().unwrap().last().unwrap();
+
+    // NOTE: We iterate through the groups _backwards_
+    for (i_starts, group_length) in group_i_starts.iter().zip(groups).rev() {
+        // Filter this group according to the current maximum.
+        let new_i_starts: Vec<_> = i_starts
+            .iter()
+            .filter(|&&x| x <= max_i_start)
+            .map(|&x| x)
+            .collect();
+
+        // The new maximum is computed.
+        let subtractor = group_length + 1;
+
+        // NOTE: this assumes that i_starts is sorted, which it will be.
+        let current_max = *new_i_starts.last().unwrap();
+
+        // Avoid underflow!
+        max_i_start = if current_max < subtractor {
+            0
+        } else {
+            current_max - subtractor
+        };
+
+        // We store the filtered group.
+        reversed_result.push(new_i_starts);
+    }
+
+    // Reverse the result to get it the correct way around, and return it.
+    reversed_result.reverse();
+    reversed_result
+}
+
+
+/// Second attempt at computing the number of allowed arrangements.
+/// Attempting to have better complexity than `num_arrangements`!
+fn num_arrangements_2(line: &str) -> usize {
+    dbg!(line);
+    let springs: Springs = line.parse().unwrap();
+
+    let pattern = springs.pattern;
+    let groups = springs.required;
+
+    // New plan: work out conservative bounds for the allowed starting points for each group.
+    //  We will constrain this by:
+    //      - Intersections with known parts of the pattern
+    //      - Bounds from the other groups that exist.
+    let group_i_starts: Vec<_> = groups
+        .iter()
+        .enumerate()
+        .map(|(i_group, &group_length)| {
+            let n_groups_before = i_group;
+            let n_groups_after = groups.len() - (i_group + 1);
+
+            // This is the number of cells that must be left free before and after this
+            // group, simply due to the absolute minimum amount of space that can be left for them.
+            let gap_before = groups[0..i_group].iter().sum::<usize>() + n_groups_before;
+            let gap_after =
+                groups[(i_group + 1)..groups.len()].iter().sum::<usize>() + n_groups_after;
+
+            // dbg!(i_group);
+            // dbg!(group_length);
+            // dbg!(pattern.len());
+            // dbg!(gap_after);
+            // dbg!(group_length);
+
+            // Translate these gaps into a range for the start indices.
+            let i_start_min = gap_before;
+            let i_start_max = pattern.len() - (gap_after + group_length);
+            let i_start_range = i_start_min..=i_start_max;
+
+            // dbg!(&i_start_range);
+
+            // Now eliminate any start indices that would be invalid according to the pattern.
+            i_start_range
+                .filter(|&x| is_valid_start(x, group_length, &pattern))
+                .collect::<Vec<_>>()
+        })
+        .collect();
+
+    for i_starts in &group_i_starts {
+        println!("{:?}", &i_starts);
+    }
+
+    let moo: usize = group_i_starts.iter().map(|x| x.len()).product();
+    dbg!(&moo);
+
+    // We now need to do a little more pruning of the options.
+    // One observation: it is possible that a group in the middle of the pack will have more
+    // restrictive start options than groups to either side (e.g. due to intersection with the
+    // pattern).
+    let pruned_max_i_starts = prune_i_starts_from_above(&groups, &group_i_starts);
+
+    println!();
+    println!();
+    for i_starts in &pruned_max_i_starts {
+        println!("{:?}", &i_starts);
+    }
+
+    let moo2: usize = pruned_max_i_starts.iter().map(|x| x.len()).product();
+    dbg!(&moo2);
+
+    // Now do the same thing for a _lower_ bound on i_start.
+    let pruned_min_i_starts = prune_i_starts_from_below(&groups, &pruned_max_i_starts);
+
+    println!();
+    println!();
+    for i_starts in &pruned_min_i_starts {
+        println!("{:?}", &i_starts);
+    }
+
+    let moo3: usize = pruned_min_i_starts.iter().map(|x| x.len()).product();
+    dbg!(&moo3);
+
+    // These are the group starting points that we will use.
+    let group_i_starts = pruned_min_i_starts;
+
+    // Now we must iterate over possible states. A 'state' contains the starting point
+    // for every group.
+    let mut state = vec![0usize; groups.len()];
+
+    todo!()
+}
+
 fn part2(input: &str) -> usize {
     todo!()
 }
@@ -316,7 +508,8 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use crate::{
-        num_arrangements, num_arrangements_in_group, ordered_partitions, part1, part2, unfold_row,
+        num_arrangements, num_arrangements_2, num_arrangements_in_group, ordered_partitions, part1,
+        part2, unfold_row,
     };
 
     const EXAMPLE: &str = "
@@ -416,16 +609,38 @@ mod tests {
     }
 
     #[test]
-    fn test_num_arrangements_after_unfolding() {
-        // assert_eq!(num_arrangements(&unfold_row("???.### 1,1,3")), 1);
-        // assert_eq!(num_arrangements(&unfold_row(".??..??...?##. 1,1,3")), 16384);
-        // assert_eq!(num_arrangements(&unfold_row("?#?#?#?#?#?#?#? 1,3,1,6")), 1);
-        // assert_eq!(num_arrangements(&unfold_row("????.#...#... 4,1,1")), 16);
-        // assert_eq!(
-        //     num_arrangements(&unfold_row("????.######..#####. 1,6,5")),
-        //     2500
-        // );
-        assert_eq!(num_arrangements(&unfold_row("?###???????? 3,2,1")), 506250);
+    fn test_num_arrangements_2() {
+        // Custom, slightly more interesting, test.
+        assert_eq!(num_arrangements_2("???.??? 1,1,1"), 6);
+
+        assert_eq!(num_arrangements_2("???.### 1,1,3"), 1);
+        assert_eq!(num_arrangements_2(".??..??...?##. 1,1,3"), 4);
+        assert_eq!(num_arrangements_2("?#?#?#?#?#?#?#? 1,3,1,6"), 1);
+        assert_eq!(num_arrangements_2("????.#...#... 4,1,1"), 1);
+        assert_eq!(num_arrangements_2("????.######..#####. 1,6,5"), 4);
+        assert_eq!(num_arrangements_2("?###???????? 3,2,1"), 10);
+    }
+
+    #[test]
+    fn test_num_arrangements_2_after_unfolding() {
+        // assert_eq!(num_arrangements_2(&unfold_row("???.### 1,1,3")), 1);
+        assert_eq!(
+            num_arrangements_2(&unfold_row(".??..??...?##. 1,1,3")),
+            16384
+        );
+        assert_eq!(
+            num_arrangements_2(&unfold_row("?#?#?#?#?#?#?#? 1,3,1,6")),
+            1
+        );
+        assert_eq!(num_arrangements_2(&unfold_row("????.#...#... 4,1,1")), 16);
+        assert_eq!(
+            num_arrangements_2(&unfold_row("????.######..#####. 1,6,5")),
+            2500
+        );
+        assert_eq!(
+            num_arrangements_2(&unfold_row("?###???????? 3,2,1")),
+            506250
+        );
     }
 
     #[test]
