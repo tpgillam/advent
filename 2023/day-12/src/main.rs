@@ -46,8 +46,8 @@ impl FromStr for Springs {
 /// index of the group to which thing `i` should be assigned.
 // PERF: Could make this return an iterator rather than realise a vector?
 fn ordered_partitions(m: usize, n: usize) -> Vec<Vec<usize>> {
-    dbg!(m);
-    dbg!(n);
+    // dbg!(m);
+    // dbg!(n);
     if m == 0 {
         // No input elements, so nothing to do
         return vec![];
@@ -215,7 +215,7 @@ fn num_arrangements_in_group(pattern: &str, required: &[usize]) -> Option<usize>
 }
 
 fn num_arrangements(line: &str) -> usize {
-    dbg!(line);
+    // dbg!(line);
     let springs: Springs = line.parse().unwrap();
 
     // These are the pattern groups that we have been given.
@@ -230,7 +230,7 @@ fn num_arrangements(line: &str) -> usize {
 
     // These are the lengths of those groups to use for our first pass.
     let pattern_group_lengths: Vec<_> = pattern_groups.iter().map(|g| g.len()).collect();
-    dbg!(&pattern_group_lengths);
+    // dbg!(&pattern_group_lengths);
 
     let m = springs.required.len();
     let n = pattern_group_lengths.len();
@@ -259,7 +259,7 @@ fn num_arrangements(line: &str) -> usize {
             return true;
         })
         .collect();
-    dbg!(&partitions);
+    // dbg!(&partitions);
 
     partitions
         .into_iter()
@@ -391,7 +391,12 @@ fn prune_i_starts_from_above(
 
         // The new maximum index of the last value is 2 before the current maximum first-value
         // index.
-        max_i_last = *new_i_starts.last().unwrap() - 2;
+        let new_max_i_start = *new_i_starts.last().unwrap();
+        max_i_last = if new_max_i_start >= 2 {
+            new_max_i_start - 2
+        } else {
+            0
+        };
 
         // We store the filtered group.
         reversed_result.push(new_i_starts);
@@ -448,10 +453,10 @@ fn num_arrangements_2(line: &str) -> usize {
         })
         .collect();
 
-    for i_starts in &group_i_starts {
-        println!("{:?}", &i_starts);
-    }
-    dbg!(group_i_starts.iter().map(|x| x.len()).product::<usize>());
+    // for i_starts in &group_i_starts {
+    //     println!("{:?}", &i_starts);
+    // }
+    // dbg!(group_i_starts.iter().map(|x| x.len()).product::<usize>());
 
     // We now need to do a little more pruning of the options.
     // One observation: it is possible that a group in the middle of the pack will have more
@@ -459,21 +464,21 @@ fn num_arrangements_2(line: &str) -> usize {
     // pattern).
     let pruned_max_i_starts = prune_i_starts_from_above(&groups, &group_i_starts);
 
-    println!();
-    println!();
-    for i_starts in &pruned_max_i_starts {
-        println!("{:?}", &i_starts);
-    }
-    dbg!(pruned_max_i_starts
-        .iter()
-        .map(|x| x.len())
-        .product::<usize>());
+    // println!();
+    // println!();
+    // for i_starts in &pruned_max_i_starts {
+    //     println!("{:?}", &i_starts);
+    // }
+    // dbg!(pruned_max_i_starts
+    //     .iter()
+    //     .map(|x| x.len())
+    //     .product::<usize>());
 
     // Now do the same thing for a _lower_ bound on i_start.
     let pruned_min_i_starts = prune_i_starts_from_below(&groups, &pruned_max_i_starts);
 
-    println!();
-    println!();
+    // println!();
+    // println!();
     for i_starts in &pruned_min_i_starts {
         println!("{:?}", &i_starts);
     }
@@ -482,24 +487,98 @@ fn num_arrangements_2(line: &str) -> usize {
         .map(|x| x.len())
         .product::<usize>());
 
-    // FIXME: More pruning needs doing!
-    //  The final line of the unfolded example still gives an unamanageably large number of cases
-    //  to iterate over.
-    //  What we're _not_ currently doing is checking whether we are preventing ourselves from
-    //  covering known springs.
+    // What we're _not_ currently doing is checking whether we are preventing ourselves from
+    // covering known springs.
+    // We will check this as we iterate over the combinations.
+    num_arrangements_from_i_starts(&pattern, &pruned_min_i_starts, &groups)
+}
 
-    // These are the group starting points that we will use.
-    let group_i_starts = pruned_min_i_starts;
+fn num_arrangements_from_i_starts(
+    pattern: &str,
+    group_i_starts: &[Vec<usize>],
+    group_lengths: &[usize],
+) -> usize {
+    let moo = _num_arrangements_from_i_starts_impl(pattern, group_i_starts, group_lengths, 0, 0);
+    println!("Answer = {moo}");
+    moo
+}
 
-    // Now we must iterate over possible states. A 'state' contains the starting point
-    // for every group.
-    let mut state = vec![0usize; groups.len()];
+fn _num_arrangements_from_i_starts_impl(
+    pattern: &str,
+    group_i_starts: &[Vec<usize>],
+    group_lengths: &[usize],
+    offset: usize,
+    i_starts_offset: usize,
+) -> usize {
+    match group_i_starts.first() {
+        None => 1,
+        Some(i_starts) => {
+            // Compute a sum over all valid combinations.
+            let mut result: usize = 0;
+            let group_length = *group_lengths.first().unwrap();
+            // println!("{:?} -- {} -- {}", &i_starts, group_length, offset);
 
-    todo!()
+            // This will store the offset into the _next_ group's i_starts.
+            let mut next_i_starts_offset: usize = 0;
+
+            for &i_start in &i_starts[i_starts_offset..] {
+                if offset > i_start {
+                    // This i_start isn't valid for the offset. Move onto the next one.
+                    // println!("BROKEN?: group_length={}, offset={}, i_start={}", group_length, offset, i_start);
+                    continue;
+                }
+                // println!("Iter: {}", i_start);
+                let i_start_offset = i_start - offset;
+                // println!("Iter: group_length={}, offset={}, i_start={}, i_start_offset={}", group_length, offset, i_start, i_start_offset);
+
+                let is_uncovered_spring = pattern[0..i_start_offset]
+                    .as_bytes()
+                    .iter()
+                    .any(|&x| x == b'#');
+
+                if is_uncovered_spring {
+                    // We have left a spring uncovered, which means that this and all subsequent
+                    // springs cannot cover it.
+                    // println!("Uncovered: {}  -- {} -- {}", pattern, i_start, i_start_offset);
+                    break;
+                }
+
+                result += if group_i_starts.len() == 1 {
+                    1
+                } else {
+                    // Increment the next i-starts offset if possible to decrease the problem size
+                    // a bit for the next level.
+                    let next_i_starts = &group_i_starts[1];
+                    next_i_starts_offset += next_i_starts[next_i_starts_offset..]
+                        .iter()
+                        .enumerate()
+                        .filter(|&(_, x)| *x > i_start)
+                        .map(|(i, _)| i)
+                        .next()
+                        .unwrap();
+
+                    let additional_offset = i_start_offset + group_length + 1;
+                    _num_arrangements_from_i_starts_impl(
+                        &pattern[additional_offset..],
+                        &group_i_starts[1..],
+                        &group_lengths[1..],
+                        offset + additional_offset,
+                        next_i_starts_offset,
+                    )
+                }
+            }
+            // println!("Result: {}", result);
+            result
+        }
+    }
 }
 
 fn part2(input: &str) -> usize {
-    todo!()
+    input
+        .trim()
+        .lines()
+        .map(|line| num_arrangements_2(&unfold_row(line)))
+        .sum()
 }
 
 fn main() {
@@ -628,20 +707,20 @@ mod tests {
     //      cargo test tests::test_num_arrangements_2_after_unfolding -- --exact
     #[test]
     fn test_num_arrangements_2_after_unfolding() {
-        // assert_eq!(num_arrangements_2(&unfold_row("???.### 1,1,3")), 1);
-        // assert_eq!(
-        //     num_arrangements_2(&unfold_row(".??..??...?##. 1,1,3")),
-        //     16384
-        // );
-        // assert_eq!(
-        //     num_arrangements_2(&unfold_row("?#?#?#?#?#?#?#? 1,3,1,6")),
-        //     1
-        // );
-        // assert_eq!(num_arrangements_2(&unfold_row("????.#...#... 4,1,1")), 16);
-        // assert_eq!(
-        //     num_arrangements_2(&unfold_row("????.######..#####. 1,6,5")),
-        //     2500
-        // );
+        assert_eq!(num_arrangements_2(&unfold_row("???.### 1,1,3")), 1);
+        assert_eq!(
+            num_arrangements_2(&unfold_row(".??..??...?##. 1,1,3")),
+            16384
+        );
+        assert_eq!(
+            num_arrangements_2(&unfold_row("?#?#?#?#?#?#?#? 1,3,1,6")),
+            1
+        );
+        assert_eq!(num_arrangements_2(&unfold_row("????.#...#... 4,1,1")), 16);
+        assert_eq!(
+            num_arrangements_2(&unfold_row("????.######..#####. 1,6,5")),
+            2500
+        );
         assert_eq!(
             num_arrangements_2(&unfold_row("?###???????? 3,2,1")),
             506250
