@@ -61,20 +61,13 @@ fn is_valid_start(i_start: usize, n: usize, pattern: &str) -> bool {
         return false;
     }
 
-    for i in i_start..=i_last {
-        if bytes[i] == b'.' {
-            // The group cannot overlap with a ground cell.
-            return false;
-        }
-    }
-
-    // No obvious objections at this stage... let it through!
-    true
+    // The group cannot overlap with a ground cell.
+    bytes[i_start..=i_last].iter().all(|&x| x != b'.')
 }
 
 fn prune_i_starts_from_below(
     groups: &Vec<usize>,
-    group_i_starts: &Vec<Vec<usize>>,
+    group_i_starts: &[Vec<usize>],
 ) -> Vec<Vec<usize>> {
     let mut result: Vec<Vec<usize>> = Vec::new();
 
@@ -103,7 +96,7 @@ fn prune_i_starts_from_below(
 
 fn prune_i_starts_from_above(
     groups: &Vec<usize>,
-    group_i_starts: &Vec<Vec<usize>>,
+    group_i_starts: &[Vec<usize>],
 ) -> Vec<Vec<usize>> {
     let mut reversed_result: Vec<Vec<usize>> = Vec::new();
 
