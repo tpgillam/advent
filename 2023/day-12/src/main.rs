@@ -279,7 +279,6 @@ fn num_arrangements_from_i_starts(
             continue;
         }
 
-        // XXX: Are these indexings going to go out of range?
         let additional_offset_r = i_start_offset + group_length + 1;
 
         let pattern_l = if i_start_offset == 0 {
