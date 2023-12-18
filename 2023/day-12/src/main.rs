@@ -30,11 +30,7 @@ impl FromStr for Springs {
 }
 
 fn part1(input: &str) -> usize {
-    input
-        .trim()
-        .lines()
-        .map(num_arrangements)
-        .sum()
+    input.trim().lines().map(num_arrangements).sum()
 }
 
 fn unfold_row(line: &str) -> String {
@@ -90,7 +86,8 @@ fn prune_i_starts_from_below(
         // Filter this group according to the current minimum.
         let new_i_starts: Vec<_> = i_starts
             .iter()
-            .filter(|&&x| x >= min_i_start).copied()
+            .filter(|&&x| x >= min_i_start)
+            .copied()
             .collect();
 
         // The new minimum is computed.
@@ -122,7 +119,8 @@ fn prune_i_starts_from_above(
         // Filter this group according to the current maximum.
         let new_i_starts: Vec<_> = i_starts
             .iter()
-            .filter(|&&x| x <= max_i_start).copied()
+            .filter(|&&x| x <= max_i_start)
+            .copied()
             .collect();
 
         // The new maximum index of the last value is 2 before the current maximum first-value
@@ -381,23 +379,14 @@ mod tests {
     #[test]
     fn test_num_arrangements_2_after_unfolding() {
         assert_eq!(num_arrangements(&unfold_row("???.### 1,1,3")), 1);
-        assert_eq!(
-            num_arrangements(&unfold_row(".??..??...?##. 1,1,3")),
-            16384
-        );
-        assert_eq!(
-            num_arrangements(&unfold_row("?#?#?#?#?#?#?#? 1,3,1,6")),
-            1
-        );
+        assert_eq!(num_arrangements(&unfold_row(".??..??...?##. 1,1,3")), 16384);
+        assert_eq!(num_arrangements(&unfold_row("?#?#?#?#?#?#?#? 1,3,1,6")), 1);
         assert_eq!(num_arrangements(&unfold_row("????.#...#... 4,1,1")), 16);
         assert_eq!(
             num_arrangements(&unfold_row("????.######..#####. 1,6,5")),
             2500
         );
-        assert_eq!(
-            num_arrangements(&unfold_row("?###???????? 3,2,1")),
-            506250
-        );
+        assert_eq!(num_arrangements(&unfold_row("?###???????? 3,2,1")), 506250);
     }
 
     #[test]
