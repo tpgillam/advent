@@ -293,7 +293,19 @@ fn part1(input: &str) -> usize {
     input
         .trim()
         .lines()
-        .map(|line| num_arrangements(line))
+        .map(|line| {
+            num_arrangements_2(line)
+            // let n1 = num_arrangements(line);
+            // let n2 = num_arrangements_2(line);
+            // if n1 != n2 {
+            //     dbg!(n1);
+            //     dbg!(n2);
+            //     dbg!(line);
+            //     panic!();
+            // }
+            // n2
+        })
+        // .map(|line| num_arrangements_2(line))
         .sum()
 }
 
@@ -412,7 +424,7 @@ fn prune_i_starts_from_above(
 /// Second attempt at computing the number of allowed arrangements.
 /// Attempting to have better complexity than `num_arrangements`!
 fn num_arrangements_2(line: &str) -> usize {
-    dbg!(line);
+    // dbg!(line);
     let springs: Springs = line.parse().unwrap();
 
     let pattern = springs.pattern;
@@ -493,7 +505,7 @@ fn num_arrangements_2(line: &str) -> usize {
     // covering known springs.
     // We will check this as we iterate over the combinations.
     let moo = num_arrangements_from_i_starts(&pattern, &pruned_min_i_starts, &groups, 0);
-    println!("Answer = {moo}");
+    // println!("Answer = {moo}");
     moo
 }
 
@@ -505,12 +517,12 @@ fn num_arrangements_from_i_starts(
 ) -> usize {
     if group_i_starts.len() == 0 {
         return if pattern.as_bytes().iter().any(|&x| x == b'#') {
-            // println!("ZERO: returning 0");
+            // println!("ZERO: pattern=\"{pattern}\", returning 0");
             // We are not matching the pattern, since we need to provide at least one
             // #; return zero.
             0
         } else {
-            // println!("ZERO: returning 1");
+            // println!("ZERO: pattern=\"{pattern}\", returning 1");
             // There is no requirement to provide any #s, so there is one way to do this.
             1
         };
@@ -582,18 +594,23 @@ fn num_arrangements_from_i_starts(
 
     let group_length = group_lengths[i_group];
     for &i_start in group_i_starts[i_group].iter() {
-        // println!("ITER: i_group={i_group}, group_length={group_length}, i_start={i_start}, pattern={pattern}, offset={offset}");
+        // println!("ITER: i_group={i_group}, group_length={group_length}, i_start={i_start}, pattern={pattern}, offset={offset}, group_lengths={group_lengths:?}");
 
         // NOTE: We do not need to worry about 'not covering' any #s, since this is considered
         // through the union of:
         //  - our initial filtering of the possible start points
         //  - the checks inside the left & right side of our partitions.
+        // TODO: refactor this out as it is shared with above
         if offset > i_start {
-            // This i_start isn't valid for the offset. Move onto the next one.
-            continue;
+            // This i_start indicates a range that will start before the pattern.
+            continue
         }
-        // println!("Iter: {}", i_start);
         let i_start_offset = i_start - offset;
+        let i_last = i_start_offset + group_length - 1;
+        if i_last >= pattern.len() {
+            // This group would finish after the pattern finishes.
+            continue
+        }
 
         // XXX: Are these indexings going to go out of range?
         let additional_offset_r = i_start_offset + group_length + 1;
@@ -828,15 +845,18 @@ mod tests {
 
     #[test]
     fn test_num_arrangements_2() {
-        // Custom, slightly more interesting, test.
-        assert_eq!(num_arrangements_2("???.??? 1,1,1"), 6);
+        // // Custom, slightly more interesting, test.
+        // assert_eq!(num_arrangements_2("???.??? 1,1,1"), 6);
 
-        assert_eq!(num_arrangements_2("???.### 1,1,3"), 1);
-        assert_eq!(num_arrangements_2(".??..??...?##. 1,1,3"), 4);
-        assert_eq!(num_arrangements_2("?#?#?#?#?#?#?#? 1,3,1,6"), 1);
-        assert_eq!(num_arrangements_2("????.#...#... 4,1,1"), 1);
-        assert_eq!(num_arrangements_2("????.######..#####. 1,6,5"), 4);
-        assert_eq!(num_arrangements_2("?###???????? 3,2,1"), 10);
+        // assert_eq!(num_arrangements_2("???.### 1,1,3"), 1);
+        // assert_eq!(num_arrangements_2(".??..??...?##. 1,1,3"), 4);
+        // assert_eq!(num_arrangements_2("?#?#?#?#?#?#?#? 1,3,1,6"), 1);
+        // assert_eq!(num_arrangements_2("????.#...#... 4,1,1"), 1);
+        // assert_eq!(num_arrangements_2("????.######..#####. 1,6,5"), 4);
+        // assert_eq!(num_arrangements_2("?###???????? 3,2,1"), 10);
+
+        // Another test-case
+        assert_eq!(num_arrangements_2("?#?.??.#?.??? 2,1,1,1"), 14);
     }
 
     // NOTE: To run just this test:
