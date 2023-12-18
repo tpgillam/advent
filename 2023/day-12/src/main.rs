@@ -1,4 +1,6 @@
-use std::str::FromStr;
+use std::{str::FromStr, cmp::{max, min}};
+
+use itertools::Itertools;
 
 fn get_input() -> &'static str {
     include_str!("../input.txt")
@@ -479,28 +481,162 @@ fn num_arrangements_2(line: &str) -> usize {
 
     // println!();
     // println!();
-    for i_starts in &pruned_min_i_starts {
-        println!("{:?}", &i_starts);
-    }
-    dbg!(pruned_min_i_starts
-        .iter()
-        .map(|x| x.len())
-        .product::<usize>());
+    // for i_starts in &pruned_min_i_starts {
+    //     println!("{:?}", &i_starts);
+    // }
+    // dbg!(pruned_min_i_starts
+    //     .iter()
+    //     .map(|x| x.len())
+    //     .product::<usize>());
 
     // What we're _not_ currently doing is checking whether we are preventing ourselves from
     // covering known springs.
     // We will check this as we iterate over the combinations.
-    num_arrangements_from_i_starts(&pattern, &pruned_min_i_starts, &groups)
+    let moo = num_arrangements_from_i_starts(&pattern, &pruned_min_i_starts, &groups, 0);
+    println!("Answer = {moo}");
+    moo
 }
 
 fn num_arrangements_from_i_starts(
     pattern: &str,
     group_i_starts: &[Vec<usize>],
     group_lengths: &[usize],
+    offset: usize,
 ) -> usize {
-    let moo = _num_arrangements_from_i_starts_impl(pattern, group_i_starts, group_lengths, 0, 0);
-    println!("Answer = {moo}");
-    moo
+    if group_i_starts.len() == 0 {
+        return if pattern.as_bytes().iter().any(|&x| x == b'#') {
+            // println!("ZERO: returning 0");
+            // We are not matching the pattern, since we need to provide at least one
+            // #; return zero.
+            0
+        } else {
+            // println!("ZERO: returning 1");
+            // There is no requirement to provide any #s, so there is one way to do this.
+            1
+        };
+    } else if group_i_starts.len() == 1 {
+        // println!(
+        //     "ONE: group_length={}, i_starts={:?}, pattern={pattern}, offset={offset}",
+        //     group_lengths[0], &group_i_starts[0]
+        // );
+
+        // Only one group to handle.
+        // We need to:
+        //  - filter out invalid elements given pattern length.
+        //  - filter out invalid elements given locations of #
+        //
+        // The number remaining is our answer.
+
+        let i_starts = &group_i_starts[0];
+        let group_length = group_lengths[0];
+
+        // Determine the maximum start & minimum end of the group in order to cover
+        // all #s.
+        let (max_i_start, min_i_last) = match pattern
+            .as_bytes()
+            .iter()
+            .enumerate()
+            .filter(|(_, &x)| x == b'#')
+            .map(|(i, _)| i)
+            .minmax()
+        {
+            itertools::MinMaxResult::NoElements => (pattern.len(), 0usize),
+            itertools::MinMaxResult::OneElement(i) => (i, i),
+            itertools::MinMaxResult::MinMax(i_min, i_max) => (i_min, i_max),
+        };
+
+        let moo = i_starts
+            .iter()
+            .filter(|&&i_start| {
+                if offset > i_start {
+                    // This i_start indicates a range that will start before the pattern.
+                    return false;
+                }
+                let i_start_offset = i_start - offset;
+                let i_last = i_start_offset + group_length - 1;
+                if i_last >= pattern.len() {
+                    // This group would finish after the pattern finishes.
+                    return false;
+                }
+
+                // Apply constraints from # locations.
+                if i_start_offset > max_i_start {
+                    return false;
+                }
+                if i_last < min_i_last {
+                    return false;
+                }
+                true
+            })
+            .count();
+        // println!("   result={moo}");
+
+        return moo;
+    }
+
+    // Bisect the number of groups still available, and then trim to either side.
+    let i_group = group_i_starts.len() / 2;
+
+    // This is the total number of combinations that we have found from this bisection.
+    let mut total: usize = 0;
+
+    let group_length = group_lengths[i_group];
+    for &i_start in group_i_starts[i_group].iter() {
+        // println!("ITER: i_group={i_group}, group_length={group_length}, i_start={i_start}, pattern={pattern}, offset={offset}");
+
+        // NOTE: We do not need to worry about 'not covering' any #s, since this is considered
+        // through the union of:
+        //  - our initial filtering of the possible start points
+        //  - the checks inside the left & right side of our partitions.
+        if offset > i_start {
+            // This i_start isn't valid for the offset. Move onto the next one.
+            continue;
+        }
+        // println!("Iter: {}", i_start);
+        let i_start_offset = i_start - offset;
+
+        // XXX: Are these indexings going to go out of range?
+        let additional_offset_r = i_start_offset + group_length + 1;
+        // println!(
+        //     "additional_offset_r={additional_offset_r}, pattern.len={}",
+        //     pattern.len()
+        // );
+
+        let pattern_l = if i_start_offset == 0 {
+            ""
+        } else {
+            &pattern[..min(i_start_offset - 1, pattern.len())]
+        };
+        let pattern_r = if additional_offset_r > pattern.len() {
+            ""
+        } else {
+            &pattern[additional_offset_r..]
+        };
+
+        let group_lengths_l = &group_lengths[..i_group];
+        let group_lengths_r = &group_lengths[(i_group + 1)..];
+
+        let group_i_starts_l = &group_i_starts[..i_group];
+        let group_i_starts_r = &group_i_starts[(i_group + 1)..];
+
+        total +=
+            num_arrangements_from_i_starts(pattern_l, group_i_starts_l, group_lengths_l, offset)
+                * num_arrangements_from_i_starts(
+                    pattern_r,
+                    group_i_starts_r,
+                    group_lengths_r,
+                    offset + additional_offset_r,
+                );
+    }
+    total
+}
+
+fn num_arrangements_from_i_starts_slow(
+    pattern: &str,
+    group_i_starts: &[Vec<usize>],
+    group_lengths: &[usize],
+) -> usize {
+    _num_arrangements_from_i_starts_impl(pattern, group_i_starts, group_lengths, 0, 0)
 }
 
 fn _num_arrangements_from_i_starts_impl(
