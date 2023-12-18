@@ -352,7 +352,7 @@ mod tests {
     }
 
     #[test]
-    fn test_num_arrangements_2() {
+    fn test_num_arrangements() {
         // Custom, slightly more interesting, test.
         assert_eq!(num_arrangements("???.??? 1,1,1"), 6);
 
@@ -368,9 +368,9 @@ mod tests {
     }
 
     // NOTE: To run just this test:
-    //      cargo test tests::test_num_arrangements_2_after_unfolding -- --exact
+    //      cargo test tests::test_num_arrangements_after_unfolding -- --exact
     #[test]
-    fn test_num_arrangements_2_after_unfolding() {
+    fn test_num_arrangements_after_unfolding() {
         assert_eq!(num_arrangements(&unfold_row("???.### 1,1,3")), 1);
         assert_eq!(num_arrangements(&unfold_row(".??..??...?##. 1,1,3")), 16384);
         assert_eq!(num_arrangements(&unfold_row("?#?#?#?#?#?#?#? 1,3,1,6")), 1);
