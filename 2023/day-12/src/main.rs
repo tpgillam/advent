@@ -33,7 +33,7 @@ fn part1(input: &str) -> usize {
     input
         .trim()
         .lines()
-        .map(|line| num_arrangements(line))
+        .map(num_arrangements)
         .sum()
 }
 
@@ -90,8 +90,7 @@ fn prune_i_starts_from_below(
         // Filter this group according to the current minimum.
         let new_i_starts: Vec<_> = i_starts
             .iter()
-            .filter(|&&x| x >= min_i_start)
-            .map(|&x| x)
+            .filter(|&&x| x >= min_i_start).copied()
             .collect();
 
         // The new minimum is computed.
@@ -123,8 +122,7 @@ fn prune_i_starts_from_above(
         // Filter this group according to the current maximum.
         let new_i_starts: Vec<_> = i_starts
             .iter()
-            .filter(|&&x| x <= max_i_start)
-            .map(|&x| x)
+            .filter(|&&x| x <= max_i_start).copied()
             .collect();
 
         // The new maximum index of the last value is 2 before the current maximum first-value
@@ -203,7 +201,7 @@ fn num_arrangements_from_i_starts(
     group_lengths: &[usize],
     offset: usize,
 ) -> usize {
-    if group_i_starts.len() == 0 {
+    if group_i_starts.is_empty() {
         return if pattern.as_bytes().iter().any(|&x| x == b'#') {
             // We are not matching the pattern, since we need to provide at least one
             // #; return zero.
