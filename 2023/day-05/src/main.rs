@@ -119,9 +119,8 @@ mod almanac {
     impl RangeMap {
         pub fn lookup(&self, id_source: i64) -> i64 {
             for entry in &self.entries {
-                match entry.lookup(id_source) {
-                    Some(id_destination) => return id_destination,
-                    None => continue,
+                if let Some(id_destination) = entry.lookup(id_source) {
+                    return id_destination;
                 }
             }
             id_source
