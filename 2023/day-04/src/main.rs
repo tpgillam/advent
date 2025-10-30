@@ -16,7 +16,7 @@ struct Card {
 struct ParseCardError;
 
 fn parse_numbers(s: &str) -> Result<Vec<u32>, ParseIntError> {
-    s.split_whitespace().map(|x| x.parse::<u32>()).collect()
+    s.split_whitespace().map(str::parse::<u32>).collect()
 }
 
 impl FromStr for Card {
@@ -28,9 +28,8 @@ impl FromStr for Card {
             None => Err(ParseCardError),
         }?;
 
-        let (winning_numbers_str, our_numbers_str) = match contents.split_once(" | ") {
-            Some(x) => x,
-            None => return Err(ParseCardError),
+        let Some((winning_numbers_str, our_numbers_str)) = contents.split_once(" | ") else {
+            return Err(ParseCardError);
         };
 
         let winning_numbers = parse_numbers(winning_numbers_str).map_err(|_| ParseCardError)?;
@@ -63,8 +62,8 @@ fn parse_cards(input: &str) -> impl Iterator<Item = Card> + '_ {
 }
 
 fn num_winning(card: &Card) -> u32 {
-    let winning: HashSet<u32> = card.winning_numbers.iter().cloned().collect();
-    let ours: HashSet<u32> = card.our_numbers.iter().cloned().collect();
+    let winning: HashSet<u32> = card.winning_numbers.iter().copied().collect();
+    let ours: HashSet<u32> = card.our_numbers.iter().copied().collect();
     ours.intersection(&winning).count() as u32
 }
 
