@@ -108,15 +108,18 @@ fn distance_sum_with_expansion_factor(input: &str, factor: u64) -> usize {
 
     // This is the scaling factor. Note that we _already_ include the original row
     // in the index, so need the "- 1" to avoid double counting.
-    let alpha = (factor as i64) - 1;
+    let alpha = i64::try_from(factor).unwrap() - 1;
 
     let expanded_locations: Vec<_> = locations
         .iter()
         .map(|&(i, j)| {
             // Look at the number of rows / columns that we need to add
-            let n_i = empty_i.iter().filter(|&&this_i| this_i < i).count() as i64;
-            let n_j = empty_j.iter().filter(|&&this_j| this_j < j).count() as i64;
-            (i + (n_i * alpha) as usize, j + (n_j * alpha) as usize)
+            let n_i = i64::try_from(empty_i.iter().filter(|&&this_i| this_i < i).count()).unwrap();
+            let n_j = i64::try_from(empty_j.iter().filter(|&&this_j| this_j < j).count()).unwrap();
+            (
+                i + usize::try_from(n_i * alpha).unwrap(),
+                j + usize::try_from(n_j * alpha).unwrap(),
+            )
         })
         .collect();
 
