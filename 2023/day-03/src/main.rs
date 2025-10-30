@@ -118,7 +118,7 @@ impl FromStr for Schematic {
             )?;
         }
 
-        return Ok(Schematic { numbers, symbols });
+        Ok(Schematic { numbers, symbols })
     }
 }
 
@@ -130,7 +130,7 @@ fn render_locations(locations: &HashSet<Location>) -> String {
 
     let mut output_lines: Vec<Vec<char>> = vec![vec!['.'; n_cols]; n_rows];
 
-    for location in locations.iter() {
+    for location in locations {
         output_lines[location.row][location.col] = '*';
     }
 
@@ -223,7 +223,7 @@ fn part2(input: &str) -> String {
         .symbols
         .iter()
         .filter(|&&(_, c)| c == '*')
-        .map(|(location, _)| -> Option<u32> {
+        .filter_map(|(location, _)| -> Option<u32> {
             // At this point we have the location of a potential gear symbol.
             // We hope to find exactly two adjacent numbers...
             // PERF:  We really need to have some form of acceleration structure to avoid an O(N)
@@ -242,7 +242,6 @@ fn part2(input: &str) -> String {
                 None
             }
         })
-        .filter_map(|x| x)
         .sum();
 
     answer.to_string()
@@ -258,7 +257,7 @@ fn main() {
 mod tests {
     use crate::{part1, part2};
 
-    const EXAMPLE: &'static str = "
+    const EXAMPLE: &str = "
 467..114..
 ...*......
 ..35..633.
@@ -272,11 +271,11 @@ mod tests {
 
     #[test]
     fn example_part1() {
-        assert_eq!(part1(EXAMPLE), "4361")
+        assert_eq!(part1(EXAMPLE), "4361");
     }
 
     #[test]
     fn example_part2() {
-        assert_eq!(part2(EXAMPLE), "467835")
+        assert_eq!(part2(EXAMPLE), "467835");
     }
 }
