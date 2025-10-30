@@ -1,7 +1,11 @@
 [package]
 name = "day-12"
 version = "0.1.0"
-edition = "2021"
+edition = { workspace = true }
+rust-version = { workspace = true }
+
+[lints]
+workspace = true
 
 [dependencies]
 itertools = "0.12.0"
