@@ -16,7 +16,7 @@ fn part1(input: &str) -> String {
                 }
             });
             let first_digit = digits.next().unwrap();
-            let last_digit = match digits.last() {
+            let last_digit = match digits.next_back() {
                 Some(x) => x,
                 None => first_digit,
             };
@@ -48,8 +48,8 @@ fn replace_string_numbers(line: &str) -> String {
     // use `into_bytes` to consume the String and get a Vec<u8> (which is owning).
     let mut line_bytes = line.to_string().into_bytes();
 
-    for (&digit, locations) in digit_to_locations.iter() {
-        for &loc in locations.iter() {
+    for (digit, locations) in digit_to_locations {
+        for loc in locations {
             line_bytes[loc] = digit;
         }
     }
@@ -74,10 +74,10 @@ fn find_literal_digit_occurrences(line: &str) -> HashMap<u8, Vec<usize>> {
             } else {
                 let digit_bytes = (i + 1).to_string().into_bytes();
                 assert_eq!(digit_bytes.len(), 1);
-                return Some((
+                Some((
                     digit_bytes[0],
                     matches.iter().map(|&(loc, _)| loc).collect::<Vec<_>>(),
-                ));
+                ))
             }
         })
         .collect();
