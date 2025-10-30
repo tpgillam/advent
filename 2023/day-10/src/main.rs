@@ -20,7 +20,10 @@ fn get_pipes(input: &str) -> Pipes {
     // Concatenate the result into a single array.
     concatenate(
         Axis(0),
-        rows.iter().map(|x| x.view()).collect::<Vec<_>>().as_slice(),
+        rows.iter()
+            .map(ndarray::ArrayBase::view)
+            .collect::<Vec<_>>()
+            .as_slice(),
     )
     .unwrap()
 }
@@ -34,34 +37,33 @@ enum Direction {
 }
 
 impl Direction {
-    fn apply(&self, pipes: &Pipes, location: (usize, usize)) -> Option<(usize, usize)> {
+    fn apply(self, pipes: &Pipes, location: (usize, usize)) -> Option<(usize, usize)> {
         let (i, j) = location;
         let (ni, nj) = pipes.dim();
 
-        use Direction::*;
         match self {
-            North => {
+            Direction::North => {
                 if i == 0 {
                     None
                 } else {
                     Some((i - 1, j))
                 }
             }
-            South => {
+            Direction::South => {
                 if i == ni {
                     None
                 } else {
                     Some((i + 1, j))
                 }
             }
-            East => {
+            Direction::East => {
                 if j == nj {
                     None
                 } else {
                     Some((i, j + 1))
                 }
             }
-            West => {
+            Direction::West => {
                 if j == 0 {
                     None
                 } else {
@@ -71,8 +73,8 @@ impl Direction {
         }
     }
 
-    fn inverse(&self) -> Direction {
-        use Direction::*;
+    fn inverse(self) -> Direction {
+        use Direction::{East, North, South, West};
         match self {
             North => South,
             South => North,
@@ -153,7 +155,7 @@ fn get_start_directions(pipes: &Pipes, start: &Start) -> (Direction, Direction) 
                         }
                         Cell::Start { .. } => panic!("Should not have two starts..."),
 
-                        Cell::Ground { .. } => false,
+                        Cell::Ground => false,
                     }
                 }
                 None => false, // Direction led off the map.
@@ -180,7 +182,7 @@ fn get_next_state(pipes: &Pipes, state: &State) -> State {
             location,
             ..
         } => (directions, location),
-        x => panic!("Cannot get next state for {:?}", x),
+        x => panic!("Cannot get next state for {x:?}"),
     };
 
     // Pick the 'next' direction so that we don't move back to the previous state.
@@ -373,8 +375,8 @@ fn part2(input: &str) -> u32 {
                 match cell {
                     Cell::Ground => {
                         if is_inside {
-                            // println!("Ground inside: {:?}", location);
-                            interior_count += 1
+                            // println!("Ground inside: {location:?}");
+                            interior_count += 1;
                         }
                     }
                     Cell::Pipe { directions, .. } => handle_directions(
@@ -399,7 +401,7 @@ fn part2(input: &str) -> u32 {
                             &mut interior_count,
                             &mut north_on_stack,
                             &mut south_on_stack,
-                        )
+                        );
                     }
                 }
             }

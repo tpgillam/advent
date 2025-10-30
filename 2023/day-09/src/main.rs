@@ -12,7 +12,7 @@ fn diff(sequence: &[i64]) -> Vec<i64> {
 fn make_diff_stack(sequence: &[i64]) -> Vec<Vec<i64>> {
     let mut stack: Vec<Vec<i64>> = vec![sequence.to_vec()];
     while !stack.last().unwrap().iter().all(|x| *x == 0) {
-        stack.push(diff(stack.last().unwrap()))
+        stack.push(diff(stack.last().unwrap()));
     }
     stack
 }
