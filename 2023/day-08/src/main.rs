@@ -181,24 +181,20 @@ fn find_cycle(map: &Map, start: &Node) -> Cycle {
         let (i_direction, direction) = it_directions.next().unwrap();
 
         let key = (i_direction, current_node);
-        match seen_states.get(&key) {
-            Some(&cycle_state_first) => {
-                // We have completed the cycle! Package everything into a Cycle
-                return Cycle {
-                    finish_node_steps,
-                    state_first: cycle_state_first,
-                    state_second: i_step,
-                };
-            }
-            None => {
-                // We are at a state that we haven't seen before, so record the state.
-                seen_states.insert(key, i_step);
+        if let Some(&cycle_state_first) = seen_states.get(&key) {
+            // We have completed the cycle! Package everything into a Cycle
+            return Cycle {
+                finish_node_steps,
+                state_first: cycle_state_first,
+                state_second: i_step,
+            };
+        }
+        // We are at a state that we haven't seen before, so record the state.
+        seen_states.insert(key, i_step);
 
-                // Is this a finish node? If so keep track of how many steps it took to get here.
-                if is_finish_node(current_node) {
-                    finish_node_steps.push(i_step);
-                }
-            }
+        // Is this a finish node? If so keep track of how many steps it took to get here.
+        if is_finish_node(current_node) {
+            finish_node_steps.push(i_step);
         }
 
         // Advance to the next state.
@@ -324,11 +320,7 @@ fn completion_steps(cycles: &[Cycle]) -> usize {
 
     // The number of steps we need to take now is the Lowest Common Multiple of all the
     // lengths.
-    let lowest_common_multiple = lengths
-        .into_iter()
-        .map(|x| x as i64)
-        .reduce(num::integer::lcm)
-        .unwrap() as usize;
+    let lowest_common_multiple = lengths.into_iter().reduce(num::integer::lcm).unwrap();
     // println!("LCM: {}", lowest_common_multiple);
 
     // Remember that we need to subtract the _additional_ offset to get the actual answer.
@@ -415,6 +407,6 @@ XXX = (XXX, XXX)";
 
     #[test]
     fn test_part2_example() {
-        assert_eq!(part2(EXAMPLE_3), 6)
+        assert_eq!(part2(EXAMPLE_3), 6);
     }
 }
