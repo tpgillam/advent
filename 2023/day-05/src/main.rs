@@ -137,7 +137,7 @@ mod almanac {
                         let (new_processed, new_unprocessed) = entry.lookup_range(this_source);
 
                         if let Some(x) = new_processed {
-                            all_processed.push(x)
+                            all_processed.push(x);
                         }
 
                         new_unprocessed
@@ -203,10 +203,9 @@ mod almanac {
 
         fn from_str(s: &str) -> Result<Almanac, Self::Err> {
             let groups: Vec<_> = s.trim().split("\n\n").collect();
-            if groups.len() != 8 {
-                // Very unexpected! Please let us know...
-                panic!();
-            }
+
+            // Very unexpected if this assert fails! Please let us know...
+            assert!(groups.len() == 8);
 
             let seeds = groups[0]
                 .trim()
@@ -249,9 +248,10 @@ fn part2(input: &str) -> String {
     // denoting ranges, rather than alter the parsing.
     let almanac: Almanac = input.parse().unwrap();
 
-    if almanac.seeds.len() % 2 != 0 {
-        panic!("Should have an even number of seed entries.")
-    }
+    assert!(
+        almanac.seeds.len() % 2 == 0,
+        "Should have an even number of seed entries."
+    );
 
     let n = almanac.seeds.len() / 2;
     let answer = (0..n)
@@ -322,12 +322,12 @@ humidity-to-location map:
 
     #[test]
     fn part1_example() {
-        assert_eq!(part1(EXAMPLE), "35")
+        assert_eq!(part1(EXAMPLE), "35");
     }
 
     #[test]
     fn part2_example() {
-        assert_eq!(part2(EXAMPLE), "46")
+        assert_eq!(part2(EXAMPLE), "46");
     }
 
     #[test]
