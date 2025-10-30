@@ -26,7 +26,10 @@ fn get_galaxies(input: &str) -> Galaxies {
     // Concatenate the result into a single array.
     concatenate(
         Axis(0),
-        rows.iter().map(|x| x.view()).collect::<Vec<_>>().as_slice(),
+        rows.iter()
+            .map(ndarray::ArrayBase::view)
+            .collect::<Vec<_>>()
+            .as_slice(),
     )
     .unwrap()
 }
@@ -60,14 +63,14 @@ fn get_galaxy_locations(galaxies: &Galaxies) -> Vec<Location> {
         .collect()
 }
 
-fn manhattan_distance(a: &Location, b: &Location) -> u64 {
-    let x_diff = ((a.0 as i32) - (b.0 as i32)).abs();
-    let y_diff = ((a.1 as i32) - (b.1 as i32)).abs();
+fn manhattan_distance(a: &Location, b: &Location) -> usize {
+    let x_diff = a.0.abs_diff(b.0);
+    let y_diff = a.1.abs_diff(b.1);
     // Both x_diff and y_diff will be non-negative due to taking the absolute value.
-    (x_diff + y_diff) as u64
+    x_diff + y_diff
 }
 
-fn total_distance(locations: &[Location]) -> u64 {
+fn total_distance(locations: &[Location]) -> usize {
     // Compute the sum of distances between all pairs of galaxies.
     locations
         .iter()
@@ -79,7 +82,7 @@ fn total_distance(locations: &[Location]) -> u64 {
         .sum()
 }
 
-fn part1(input: &str) -> u64 {
+fn part1(input: &str) -> usize {
     let galaxies = get_galaxies(input);
     let expanded_galaxies = get_expanded_galaxies(&galaxies);
     let locations = get_galaxy_locations(&expanded_galaxies);
@@ -94,7 +97,7 @@ fn get_empty_indices(galaxies: &Galaxies, axis: Axis) -> Vec<usize> {
         .collect()
 }
 
-fn distance_sum_with_expansion_factor(input: &str, factor: u64) -> u64 {
+fn distance_sum_with_expansion_factor(input: &str, factor: u64) -> usize {
     let galaxies = get_galaxies(input);
 
     // Get the indices of the empty rows and columns
@@ -120,8 +123,8 @@ fn distance_sum_with_expansion_factor(input: &str, factor: u64) -> u64 {
     total_distance(&expanded_locations)
 }
 
-fn part2(input: &str) -> u64 {
-    distance_sum_with_expansion_factor(input, 1000000)
+fn part2(input: &str) -> usize {
+    distance_sum_with_expansion_factor(input, 1_000_000)
 }
 
 fn main() {

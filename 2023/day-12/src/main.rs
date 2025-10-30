@@ -119,11 +119,7 @@ fn prune_i_starts_from_above(
         // The new maximum index of the last value is 2 before the current maximum first-value
         // index.
         let new_max_i_start = *new_i_starts.last().unwrap();
-        max_i_last = if new_max_i_start >= 2 {
-            new_max_i_start - 2
-        } else {
-            0
-        };
+        max_i_last = new_max_i_start.saturating_sub(2);
 
         // We store the filtered group.
         reversed_result.push(new_i_starts);
@@ -193,7 +189,8 @@ fn num_arrangements_from_i_starts(
     offset: usize,
 ) -> usize {
     if group_i_starts.is_empty() {
-        return if pattern.as_bytes().iter().any(|&x| x == b'#') {
+        #[allow(clippy::bool_to_int_with_if)]
+        return if pattern.as_bytes().contains(&b'#') {
             // We are not matching the pattern, since we need to provide at least one
             // #; return zero.
             0
@@ -262,7 +259,7 @@ fn num_arrangements_from_i_starts(
     let mut total: usize = 0;
 
     let group_length = group_lengths[i_group];
-    for &i_start in group_i_starts[i_group].iter() {
+    for &i_start in &group_i_starts[i_group] {
         // NOTE: We do not need to worry about 'not covering' any #s, since this is considered
         // through the union of:
         //  - our initial filtering of the possible start points
@@ -378,11 +375,11 @@ mod tests {
             num_arrangements(&unfold_row("????.######..#####. 1,6,5")),
             2500
         );
-        assert_eq!(num_arrangements(&unfold_row("?###???????? 3,2,1")), 506250);
+        assert_eq!(num_arrangements(&unfold_row("?###???????? 3,2,1")), 506_250);
     }
 
     #[test]
     fn test_part2_example() {
-        assert_eq!(part2(EXAMPLE), 525152);
+        assert_eq!(part2(EXAMPLE), 525_152);
     }
 }
