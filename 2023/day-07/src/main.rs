@@ -92,7 +92,6 @@ impl<const PART2: bool> Hand<PART2> {
             acc
         });
 
-        #[allow(clippy::if_not_else)]
         if !PART2 {
             infer_hand_type(&label_to_count)
         } else {
@@ -142,7 +141,7 @@ impl<const PART2: bool> Ord for Hand<PART2> {
 }
 
 #[derive(Debug)]
-#[allow(dead_code)]
+#[expect(dead_code)]
 struct ParseHandErr {
     msg: String,
 }

@@ -123,7 +123,7 @@ impl FromStr for Schematic {
 }
 
 // This was used for debugging, so don't warn about the fact that it is unused.
-#[allow(dead_code)]
+#[expect(dead_code)]
 fn render_locations(locations: &HashSet<Location>) -> String {
     let n_rows = locations.iter().map(|x| x.row).max().unwrap() + 1;
     let n_cols = locations.iter().map(|x| x.col).max().unwrap() + 1;

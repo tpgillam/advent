@@ -66,7 +66,7 @@ mod almanac {
             }
 
             // At this point we know that we either overlap over start OR we overlap over the end.
-            #[allow(clippy::single_range_in_vec_init)]
+            #[expect(clippy::single_range_in_vec_init)]
             if source.start < self.source_range.start {
                 (
                     Some(
