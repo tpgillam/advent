@@ -64,7 +64,7 @@ fn parse_cards(input: &str) -> impl Iterator<Item = Card> + '_ {
 fn num_winning(card: &Card) -> u32 {
     let winning: HashSet<u32> = card.winning_numbers.iter().copied().collect();
     let ours: HashSet<u32> = card.our_numbers.iter().copied().collect();
-    ours.intersection(&winning).count() as u32
+    u32::try_from(ours.intersection(&winning).count()).unwrap()
 }
 
 fn part1(input: &str) -> String {
@@ -153,11 +153,11 @@ Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11";
 
     #[test]
     fn part1_example() {
-        assert_eq!(part1(EXAMPLE), "13")
+        assert_eq!(part1(EXAMPLE), "13");
     }
 
     #[test]
     fn part2_example() {
-        assert_eq!(part2(EXAMPLE), "30")
+        assert_eq!(part2(EXAMPLE), "30");
     }
 }
