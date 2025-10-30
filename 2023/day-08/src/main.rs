@@ -92,7 +92,7 @@ impl FromStr for Map {
 
         let directions = direction_str
             .chars()
-            .map(|c| Direction::from_char(c).map_err(|_| ParseMapErr))
+            .map(|c| Direction::from_char(c).map_err(|()| ParseMapErr))
             .collect::<Result<Vec<_>, _>>()?;
 
         Ok(Map {
@@ -127,7 +127,7 @@ fn part1(input: &str) -> u32 {
 
     while *node != finish {
         node = make_move(&map, node, it_directions.next().unwrap());
-        n += 1
+        n += 1;
     }
 
     n
@@ -150,10 +150,10 @@ struct Cycle {
 
     // Define the "cycle state" to be the (direction index, node) pair that
     // denotes the start of a loop in the process.
-    cycle_state_first: usize,
+    state_first: usize,
 
     // This is the step at which we encountered the state for the second time.
-    cycle_state_second: usize,
+    state_second: usize,
 }
 
 fn find_cycle(map: &Map, start: &Node) -> Cycle {
@@ -186,8 +186,8 @@ fn find_cycle(map: &Map, start: &Node) -> Cycle {
                 // We have completed the cycle! Package everything into a Cycle
                 return Cycle {
                     finish_node_steps,
-                    cycle_state_first,
-                    cycle_state_second: i_step,
+                    state_first: cycle_state_first,
+                    state_second: i_step,
                 };
             }
             None => {
@@ -210,8 +210,8 @@ fn find_cycle(map: &Map, start: &Node) -> Cycle {
 #[derive(Debug)]
 struct SimpleCycle {
     finish_node_step: usize,
-    cycle_state_first: usize,
-    cycle_state_second: usize,
+    state_first: usize,
+    state_second: usize,
 }
 
 impl SimpleCycle {
@@ -219,7 +219,7 @@ impl SimpleCycle {
         if cycle
             .finish_node_steps
             .iter()
-            .any(|&x| x < cycle.cycle_state_first)
+            .any(|&x| x < cycle.state_first)
         {
             return Err(format!(
                 "There are finishes before the cycle starts: {cycle:?}",
@@ -232,20 +232,20 @@ impl SimpleCycle {
 
                 Ok(SimpleCycle {
                     finish_node_step,
-                    cycle_state_first: cycle.cycle_state_first,
-                    cycle_state_second: cycle.cycle_state_second,
+                    state_first: cycle.state_first,
+                    state_second: cycle.state_second,
                 })
             }
             2 => {
                 // We _might_ be able to handle this if the cycle can be simplified.
-                let length = cycle.cycle_state_second - cycle.cycle_state_first;
-                let x0 = cycle.finish_node_steps[0] - cycle.cycle_state_first;
-                let x1 = cycle.finish_node_steps[1] - cycle.cycle_state_first;
+                let length = cycle.state_second - cycle.state_first;
+                let x0 = cycle.finish_node_steps[0] - cycle.state_first;
+                let x1 = cycle.finish_node_steps[1] - cycle.state_first;
                 if (x0 == x1 / 2) && (length % 2 == 0) {
                     Ok(SimpleCycle {
                         finish_node_step: cycle.finish_node_steps[0],
-                        cycle_state_first: cycle.cycle_state_first,
-                        cycle_state_second: cycle.cycle_state_first + length / 2,
+                        state_first: cycle.state_first,
+                        state_second: cycle.state_first + length / 2,
                     })
                 } else {
                     Err(format!("Can't simplify cycle: {cycle:?}",))
@@ -280,7 +280,7 @@ fn completion_steps(cycles: &[Cycle]) -> usize {
     // We next re-index the cycles such that they all start simultaneously.
     let offset = simple_cycles
         .iter()
-        .map(|cycle| cycle.cycle_state_first)
+        .map(|cycle| cycle.state_first)
         .max()
         .unwrap();
 
@@ -289,12 +289,12 @@ fn completion_steps(cycles: &[Cycle]) -> usize {
         .iter()
         .map(|cycle| {
             // This represents the number of nodes in the cycle. It will be positive.
-            let cycle_length = cycle.cycle_state_second - cycle.cycle_state_first;
+            let cycle_length = cycle.state_second - cycle.state_first;
 
-            let raw_finish_pos = cycle.finish_node_step - cycle.cycle_state_first;
+            let raw_finish_pos = cycle.finish_node_step - cycle.state_first;
 
             // This is the amount of extra distance we want to move into the cycle.
-            let rotation_distance = offset - cycle.cycle_state_first;
+            let rotation_distance = offset - cycle.state_first;
 
             let finish_step = if rotation_distance > raw_finish_pos {
                 raw_finish_pos + cycle_length - rotation_distance
