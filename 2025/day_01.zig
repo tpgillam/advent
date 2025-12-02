@@ -66,7 +66,6 @@ fn part2(input: []const u8) !i32 {
             },
         }
     }
-    std.debug.print("{}\n", .{num_zeros});
     return num_zeros;
 }
 
