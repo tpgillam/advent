@@ -1,6 +1,7 @@
 const std = @import("std");
 
-// Maximum length of any line; we uw
+// Maximum length of any line; we use this to ensure our reader's buffer
+// is sufficiently large.
 const MAX_LINE_LENGTH = 512;
 
 fn maxJoltage2(line: []const u8) u32 {
