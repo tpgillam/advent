@@ -3,7 +3,7 @@ const std = @import("std");
 // Maximum length of any line; we uw
 const MAX_LINE_LENGTH = 512;
 
-fn maxJoltage(line: []const u8) !u32 {
+fn maxJoltage(line: []const u8) u32 {
     // The 'tens' place is the largest digit found in [0:len(line) - 2].
     // The 'ones' place is the largest digit found after the 'tens' place.
     //
@@ -13,7 +13,7 @@ fn maxJoltage(line: []const u8) !u32 {
     var ones: u32 = 0;
 
     for (line, 0..) |x, i| {
-        const val = try std.fmt.charToDigit(x, 10);
+        const val = x - '0';
         if (i < (line.len - 1)) {
             // We can look for a tens.
             if (val > tens) {
@@ -36,7 +36,7 @@ fn part1(reader: *std.io.Reader) !u32 {
     while (try reader.takeDelimiter('\n')) |line| {
         if (line.len == 0) break;
         // std.debug.print("{s}\n", .{line});
-        total += try maxJoltage(line);
+        total += maxJoltage(line);
     }
     return total;
 }
